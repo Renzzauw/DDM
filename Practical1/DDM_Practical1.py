@@ -15,9 +15,11 @@ from mathutils import Matrix as Matrix
 
 # This function is called when the DDM operator is selected in Blender.
 def DDM_Practical1(context):
-	print("yeet")
+
 	# TODO: get the triangles for the active mesh and use show_mesh() to display a copy
+	print("yeet")
 	show_mesh(get_triangles(context))
+
 
 
 	# TODO: print the euler_characteristic value for the active mesh
@@ -58,10 +60,9 @@ def show_mesh(triangles):
 		# Add the face to the list of faces
 		faces.append(face)
 		# Add the vertices to the list of vertices
-		vertices.append(t[0])
+		vertices.append(t[0])       
 		vertices.append(t[1])
-		vertices.append(t[2])
-	
+		vertices.append(t[2])	
 	# add data to the mesh
 	mesh.from_pydata(vertices, [], faces)
 	# Update mesh changes
@@ -69,7 +70,22 @@ def show_mesh(triangles):
 	
 # Returns the faces of the active object as a list of triplets of points
 def get_triangles(context):
-	return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
+	# Get the currently active object
+	obj = bpy.context.scene.objects.active
+	# Get this object's polygons
+	polygons = obj.data.polygons
+	faces = []
+	# For each polygon, add its vertices to the list
+	for p in polygons:
+		v = p.vertices[:]
+		face = []
+		for poly in v:
+			cor = obj.data.vertices[poly].co
+			face.append(cor)
+		faces.append(face)
+		
+	return faces
+	#return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
 
 # Calculates the Euler characteristic of the given list of triangles
 def euler_characteristic(triangles):
