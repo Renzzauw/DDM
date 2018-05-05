@@ -42,22 +42,21 @@ def DDM_Practical1(context):
 # Builds a mesh using a list of triangles
 def show_mesh(triangles):
 	# Create a mesh and object first
-	mesh = bpy.data.meshes.new("cube mesh")
-	obj = bpy.data.objects.new("new cube", mesh)
+	mesh = bpy.data.meshes.new("copied mesh")
+	obj = bpy.data.objects.new(bpy.context.scene.objects.active.name + " (copy)" , mesh)
 	# Link the object to the scene
 	scene = bpy.context.scene
 	scene.objects.link(obj)
 	# Add the vertices of all triangles to a list
 	vertices = []
 	# Create a list for the faces too
-	#i = 0
 	faces = []
 	for t in triangles:
 		# Create a face (list of vertices of the triangle) and increment the index of the vertices
 		face = []
 		# Add all the vertices and face indexes that don't exist yet
 		for x in range(0, len(t)):
-			# Check if vertex is already added, if yes add existing vertex to face, if no, create new vertex and add that
+			# Check if vertex is already added, if yes: add existing vertex to face. If no: create new vertex and add that
 			if t[x] in vertices:
 				face.append(vertices.index(t[x]))
 			else:
