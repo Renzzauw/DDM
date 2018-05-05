@@ -73,22 +73,28 @@ def show_mesh(triangles):
 def get_triangles(context):
 	# Get the currently active object
 	obj = bpy.context.scene.objects.active
-	faces = []
+	triangles = []
 	# bpy.ops.object.modifier_add(type='TRIANGULATE')
 	# bpy.ops.object.modifier_apply(apply_as='DATA')
-	
+
 	# Get this object's polygons
 	polygons = obj.data.polygons
 	# For each polygon, add its vertices to the list
 	for p in polygons:
-		v = p.vertices
-		face = []
-		for poly in v:
-			cor = obj.data.vertices[poly].co
-			face.append(cor)
-		faces.append(face)
+		verts = p.vertices
+		for i in range(0, len(verts) - 2):
+			tri = []
+			tri.append(obj.data.vertices[verts[0]].co)
+			tri.append(obj.data.vertices[verts[i + 1]].co)
+			tri.append(obj.data.vertices[verts[i + 2]].co)
+			triangles.append(tri)
+
+		# for v in verts:
+		# 	cor = obj.data.vertices[v].co
+		# 	tri.append(cor)
+		# triangles.append(tri)
 		
-	return faces
+	return triangles
 
 def testSquare():
 	return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
