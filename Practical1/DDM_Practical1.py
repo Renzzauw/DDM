@@ -31,6 +31,7 @@ def DDM_Practical1(context):
 	print("Is closed: ", is_closed(tris))
 
 	# TODO: print whether the active mesh is orientable
+	print("Is orientable: ", is_orientable(tris))
 	
 	# TODO: print the genus of the active mesh
 	
@@ -159,8 +160,14 @@ def is_closed(triangles):
 	
 # Returns whether the given list of triangles is orientable
 def is_orientable(triangles):
-	if orientable: return True
-	else: return False
+	totalNormals = Vector((0, 0, 0))
+	for t in triangles:
+		dif1 = t[0] - t[2]
+		dif2 = t[1] - t[2]
+		totalNormals += dif1.cross(dif2)
+	print("YEET ", totalNormals)
+	return totalNormals != Vector((0, 0, 0))
+
 	
 # Returns the genus of the given list of triangles
 def genus(triangles):
