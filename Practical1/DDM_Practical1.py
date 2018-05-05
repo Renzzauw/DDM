@@ -18,13 +18,14 @@ from mathutils import Matrix as Matrix
 def DDM_Practical1(context):
 	
 	os.system('cls')
+	
 	# TODO: get the triangles for the active mesh and use show_mesh() to display a copy
 	print("yeet")
-	show_mesh(get_triangles(context))
-
-
+	tris = get_triangles(context)
+	show_mesh(tris)
 
 	# TODO: print the euler_characteristic value for the active mesh
+	print(euler_characteristic(tris))
 	
 	# TODO: print whether the active mesh is closed
 	
@@ -35,7 +36,7 @@ def DDM_Practical1(context):
 	# TODO: use show_mesh() to display the maximal_independent_set of the dual of the active object
 	
 	
-	print(get_triangles(context))
+	#print(get_triangles(context))
 
 # Builds a mesh using a list of triangles
 def show_mesh(triangles):
@@ -95,7 +96,43 @@ def testSquare():
 
 # Calculates the Euler characteristic of the given list of triangles
 def euler_characteristic(triangles):
-	return 0
+	# Create a list of all the vertices
+	vertices = []
+	# Add all vertices to a list without duplicates
+	for triangle in triangles:
+		for vertex in triangle:
+			if vertex not in vertices:
+				vertices.append(vertex)
+	# Calculate the amount of vertices by getting the length of the vertices list
+	v = len(vertices)
+
+	# Create a list of all the edges
+	edges = []
+	# Sort all the vertex pairs and add all non-duplicates
+	for t in triangles:
+		x = sortVectorTuple([t[0], t[1]])
+		if x not in edges: edges.append(x)
+		x = sortVectorTuple([t[0], t[2]])
+		if x not in edges: edges.append(x)
+		x = sortVectorTuple([t[1], t[2]])
+		if x not in edges: edges.append(x)
+	# Calculate the amount of edges by getting the length of the edges list
+	e = len(edges)
+
+	# Get the amount of faces (the amount of triangles)
+	f = len(triangles)
+
+	# Euler characteristic
+	return v + f - e
+
+def sortVectorTuple(tuple):
+	a = tuple[0]
+	b = tuple[1]
+	end = (a, b)
+	if b.z < a.z: end = (b, a)
+	if end[1].y < end[0].y: end = (end[1], end[0])
+	if end[1].x < end[0].x: end = (end[1], end[0])
+	return end
 
 # Returns whether the given list of triangles is a closed surface
 def is_closed(triangles):
