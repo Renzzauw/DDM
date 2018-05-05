@@ -25,10 +25,11 @@ def DDM_Practical1(context):
 	show_mesh(tris)
 
 	# TODO: print the euler_characteristic value for the active mesh
-	print(euler_characteristic(tris))
+	print("Euler characteristic: ", euler_characteristic(tris))
 	
 	# TODO: print whether the active mesh is closed
-	
+	print("Is closed: ", is_closed(tris))
+
 	# TODO: print whether the active mesh is orientable
 	
 	# TODO: print the genus of the active mesh
@@ -107,15 +108,7 @@ def euler_characteristic(triangles):
 	v = len(vertices)
 
 	# Create a list of all the edges
-	edges = []
-	# Sort all the vertex pairs and add all non-duplicates
-	for t in triangles:
-		x = sortVectorTuple([t[0], t[1]])
-		if x not in edges: edges.append(x)
-		x = sortVectorTuple([t[0], t[2]])
-		if x not in edges: edges.append(x)
-		x = sortVectorTuple([t[1], t[2]])
-		if x not in edges: edges.append(x)
+	edges = findEdges(triangles)
 	# Calculate the amount of edges by getting the length of the edges list
 	e = len(edges)
 
@@ -125,7 +118,20 @@ def euler_characteristic(triangles):
 	# Euler characteristic
 	return v + f - e
 
+def findEdges(triangles):
+	edges = []
+	# Sort all the vertex pairs and add all non-duplicates
+	for t in triangles:
+		x = sortVectorTuple([t[0], t[1]])
+		if x not in edges: edges.append(x)
+		x = sortVectorTuple([t[0], t[2]])
+		if x not in edges: edges.append(x)
+		x = sortVectorTuple([t[1], t[2]])
+		if x not in edges: edges.append(x)
+	return edges
+
 def sortVectorTuple(tuple):
+	# Sort tuple with priority X -> Y -> Z
 	a = tuple[0]
 	b = tuple[1]
 	end = (a, b)
@@ -136,7 +142,20 @@ def sortVectorTuple(tuple):
 
 # Returns whether the given list of triangles is a closed surface
 def is_closed(triangles):
-	return False
+	# Get all the edges non-duplicated
+	edges = findEdges(triangles)
+	# Check for all edges if they're shared by at least two triangles
+	for e in edges:
+		counter = 0
+		for t in triangles:
+			if t[0] == e[0] and t[1] == e[1]: counter += 1
+			elif t[0] == e[0] and t[2] == e[1]: counter += 1
+			elif t[1] == e[0] and t[2] == e[1]: counter += 1
+			elif t[1] == e[0] and t[0] == e[1]: counter += 1
+			elif t[2] == e[0] and t[0] == e[1]: counter += 1
+			elif t[2] == e[0] and t[1] == e[1]: counter += 1
+		if counter < 2: return False
+	return True
 	
 # Returns whether the given list of triangles is orientable
 def is_orientable(triangles):
