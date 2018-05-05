@@ -73,26 +73,20 @@ def show_mesh(triangles):
 def get_triangles(context):
 	# Get the currently active object
 	obj = bpy.context.scene.objects.active
+	# Create empty triangles list
 	triangles = []
-	# bpy.ops.object.modifier_add(type='TRIANGULATE')
-	# bpy.ops.object.modifier_apply(apply_as='DATA')
-
 	# Get this object's polygons
 	polygons = obj.data.polygons
-	# For each polygon, add its vertices to the list
+	# For each polygon, split into triangles and add those to the list
 	for p in polygons:
 		verts = p.vertices
+		# Every convex face consists of [vertices - 2] triangles
 		for i in range(0, len(verts) - 2):
 			tri = []
 			tri.append(obj.data.vertices[verts[0]].co)
 			tri.append(obj.data.vertices[verts[i + 1]].co)
 			tri.append(obj.data.vertices[verts[i + 2]].co)
 			triangles.append(tri)
-
-		# for v in verts:
-		# 	cor = obj.data.vertices[v].co
-		# 	tri.append(cor)
-		# triangles.append(tri)
 		
 	return triangles
 
