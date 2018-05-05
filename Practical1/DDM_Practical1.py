@@ -12,8 +12,6 @@ import os
 from mathutils import Vector as Vector
 from mathutils import Matrix as Matrix
 
-facecounter = 0
-
 # To view the printed output toggle the system console in "Window -> Toggle System Console"
 
 # This function is called when the DDM operator is selected in Blender.
@@ -42,8 +40,8 @@ def DDM_Practical1(context):
 # Builds a mesh using a list of triangles
 def show_mesh(triangles):
 	# Create a mesh and object first
-	mesh = bpy.data.meshes.new("cube mesh")
-	obj = bpy.data.objects.new("new cube", mesh)
+	mesh = bpy.data.meshes.new("mesh")
+	obj = bpy.data.objects.new(bpy.context.scene.objects.active.name + " (copy)", mesh)
 	# Link the object to the scene
 	scene = bpy.context.scene
 	scene.objects.link(obj)
@@ -51,39 +49,39 @@ def show_mesh(triangles):
 	vertices = []
 	# Create a list for the faces too
 	faces = []
+	facecounter = 0
 	for t in triangles:
 		# Create a face (list of vertices of the triangle) and increment the index of the vertices
 		face = []
 		# Add all the vertices and face indexes that don't exist yet
-		for x in range(0, len(t)):
+		for i in range(0, len(t)):
 			# Check if vertex is already added, if yes: add existing vertex to face; If no: create new vertex and add that
-			if t[x] in vertices:
-				face.append(vertices.index(t[x]))
+			if t[i] in vertices:
+				face.append(vertices.index(t[i]))
 			else:
-				vertices.append(t[x])
-				addFace(face)
+				vertices.append(t[i])
+				face.append(facecounter)
+				facecounter += 1
 		# Add the face to the list of faces
 		faces.append(face)
-	# add data to the mesh
+	# Add data to the mesh
 	mesh.from_pydata(vertices, [], faces)
 	# Update mesh changes
 	mesh.update()
-	
-def addFace(face):
-	global facecounter
-	face.append(facecounter)
-	facecounter += 1
 	
 # Returns the faces of the active object as a list of triplets of points
 def get_triangles(context):
 	# Get the currently active object
 	obj = bpy.context.scene.objects.active
+	faces = []
+	# bpy.ops.object.modifier_add(type='TRIANGULATE')
+	# bpy.ops.object.modifier_apply(apply_as='DATA')
+	
 	# Get this object's polygons
 	polygons = obj.data.polygons
-	faces = []
 	# For each polygon, add its vertices to the list
 	for p in polygons:
-		v = p.vertices[:]
+		v = p.vertices
 		face = []
 		for poly in v:
 			cor = obj.data.vertices[poly].co
