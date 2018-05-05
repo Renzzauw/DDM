@@ -159,7 +159,8 @@ def is_closed(triangles):
 	
 # Returns whether the given list of triangles is orientable
 def is_orientable(triangles):
-	return False
+	if orientable: return True
+	else: return False
 	
 # Returns the genus of the given list of triangles
 def genus(triangles):
