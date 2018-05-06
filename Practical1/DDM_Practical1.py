@@ -13,34 +13,32 @@ from collections import defaultdict
 from itertools import combinations
 from mathutils import Vector as Vector
 from mathutils import Matrix as Matrix
+import mathutils
 
 # To view the printed output toggle the system console in "Window -> Toggle System Console"
 
 # This function is called when the DDM operator is selected in Blender.
 def DDM_Practical1(context):
-	
 	os.system('cls')
 	
-	# TODO: get the triangles for the active mesh and use show_mesh() to display a copy
+	# Get the triangles for the active mesh and use show_mesh() to display a copy
 	tris = get_triangles(context)
 	show_mesh(tris)
 
-	# TODO: print the euler_characteristic value for the active mesh
+	# Print the euler_characteristic value for the active mesh
 	print("Euler characteristic: ", euler_characteristic(tris))
 	
-	# TODO: print whether the active mesh is closed
+	# Print whether the active mesh is closed
 	print("Is closed: ", is_closed(tris))
 
-	# TODO: print whether the active mesh is orientable
+	# Print whether the active mesh is orientable
 	print("Is orientable: ", is_orientable(tris))
 	
-	# TODO: print the genus of the active mesh
+	# Print the genus of the active mesh
 	print("Genus: ", genus(tris))
 
-	# TODO: use show_mesh() to display the maximal_independent_set of the dual of the active object
-	#maximal_independent_set(tris)
-	
-	#print(get_triangles(context))
+	# Use show_mesh() to display the maximal_independent_set of the dual of the active object
+	show_mesh(maximal_independent_set(tris))
 
 # Builds a mesh using a list of triangles
 def show_mesh(triangles):
@@ -94,9 +92,6 @@ def get_triangles(context):
 			triangles.append(tri)
 		
 	return triangles
-
-def testSquare():
-	return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
 
 # Calculates the Euler characteristic of the given list of triangles
 def euler_characteristic(triangles):
@@ -167,14 +162,13 @@ def is_orientable(triangles):
 		dif1 = t[0] - t[2]
 		dif2 = t[1] - t[2]
 		totalNormals += dif1.cross(dif2)
-	print("YEET ", totalNormals)
 	return totalNormals != Vector((0, 0, 0))
 
 	
 # Returns the genus of the given list of triangles
 def genus(triangles):
-	# Mesh is not a closed orientable surface, return -1
-	if not is_closed(triangles) and not is_orientable(triangles):
+	# Mesh is not a closed and an orientable surface, return -1
+	if not (is_closed(triangles) and is_orientable(triangles)):
 		return -1
 	else:
 		euler = euler_characteristic(triangles)
@@ -182,10 +176,8 @@ def genus(triangles):
 		g = (-euler + 2) / 2
 		return g
 
-# TODO: Fix assignment
+# Returns the maximal independent set for a given list of triangles
 def maximal_independent_set(triangles):
-	
-	# TODO: construct the dual of the mesh
 	# Create vertices in the middle of each face
 	faceVerts = []
 	for t in triangles:
@@ -199,30 +191,61 @@ def maximal_independent_set(triangles):
 		y /= cs
 		z /= cs
 		faceVerts.append(Vector((x, y, z)))
-	# Print for debug
-	for t, v in zip(triangles, faceVerts):
-		print(t, ': ', v, '\n')
 	
+	# Create dictionaries for shared edges and neighbouring triangles
 	sharededges = defaultdict(list)
 	neighbours = defaultdict(list)
-	edges = []
+	edges = set()
 	# For each edge, find all the faces that use it
 	for i, t in enumerate(triangles):
-		for edge in zip(t, t[1:] + t[0]):
-			sharededges[sortVectorTuple(edge)].append(i)
+		for edge in zip(t, t[1:] + t[:1]):
+			eList = []
+			for v in edge:
+				eList.append(vec2tup(v))
+			sharededges[tuple(sorted(eList))].append(i)
 	# For each face, find all its neighbours
-	for notimportant, ts in sharededges.iteritems():
+	for notimportant, ts in sharededges.items():
 		for a, b in combinations(ts, 2):
 			neighbours[a].append(b)
 			neighbours[b].append(a)
 	# Calculate all the edges for the dual
-	for t, nbs in neighbours.iteritems():
+	for t, nbs in neighbours.items():
 		for nb in nbs:
-			edges.append((t, nb))
+			edges.add(tuple(sorted(list((t, nb)))))
+	edges = sorted(list(edges))
+	edgeCoords = []
+	for edge in edges:
+		edgeCoords.append((faceVerts[edge[0]], faceVerts[edge[1]]))
+	# faceVerts + edgeCoords is now the dual graph of the mesh
 	
-	### faceVerts + edges is the dual graph of the mesh
-	
-	
-	# TODO: find the maximal independent set in this dual
-	
-	return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
+	# Create lists for the maximal independent set and the range of that set
+	max_ind_set = []
+	rangeOfSet = []
+	# For each dual vertex, test if it's in the range of the current max ind set, if not: add it and recalculate the range
+	for v in faceVerts:
+		if vec2tup(v) not in rangeOfSet:
+			max_ind_set.append(v)
+			rangeOfSet = calcRangeOfSet(max_ind_set, edgeCoords)
+
+	# Link the original triangles to the maximal independent set
+	outputTris = []
+	for v in max_ind_set:
+		outputTris.append(triangles[faceVerts.index(v)])
+
+	return outputTris
+
+# Calculate the range of 'inSet' using 'edges'
+def calcRangeOfSet(inSet, edges):
+	outSet = set()
+	for v in inSet:
+		# Add each starting vertex to the range
+		outSet.add(vec2tup(v))
+		for e in edges:
+			# If the current starting vertex is in an edge, add the other part of the edge to the range
+			if e[0] == v: outSet.add(vec2tup(e[1]))
+			if e[1] == v: outSet.add(vec2tup(e[0]))
+	return list(outSet)
+
+# Function to return the Vector as a tuple
+def vec2tup(v):
+	return (v.x, v.y, v.z)
