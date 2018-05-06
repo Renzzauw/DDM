@@ -13,7 +13,6 @@ from collections import defaultdict
 from itertools import combinations
 from mathutils import Vector as Vector
 from mathutils import Matrix as Matrix
-import mathutils
 
 # To view the printed output toggle the system console in "Window -> Toggle System Console"
 
