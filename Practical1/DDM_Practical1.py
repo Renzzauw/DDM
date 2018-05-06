@@ -9,6 +9,8 @@
 
 import bpy
 import os
+from collections import defaultdict
+from itertools import combinations
 from mathutils import Vector as Vector
 from mathutils import Matrix as Matrix
 
@@ -36,7 +38,7 @@ def DDM_Practical1(context):
 	# TODO: print the genus of the active mesh
 	
 	# TODO: use show_mesh() to display the maximal_independent_set of the dual of the active object
-	
+	maximal_independent_set(tris)
 	
 	#print(get_triangles(context))
 
@@ -177,8 +179,43 @@ def genus(triangles):
 def maximal_independent_set(triangles):
 	
 	# TODO: construct the dual of the mesh
+	# Create vertices in the middle of each face
+	faceVerts = []
+	for t in triangles:
+		x, y, z = .0, .0, .0
+		for vert in t:
+			x += vert.x
+			y += vert.y
+			z += vert.z
+		cs = len(t)
+		x /= cs
+		y /= cs
+		z /= cs
+		faceVerts.append(Vector((x, y, z)))
+	# Print for debug
+	for t, v in zip(triangles, faceVerts):
+		print(t, ': ', v, '\n')
+	
+	sharededges = defaultdict(list)
+	neighbours = defaultdict(list)
+	edges = []
+	# For each edge, find all the faces that use it
+	for i, t in enumerate(triangles):
+		for edge in zip(t, t[1:] + t[0]):
+			sharededges[sortVectorTuple(edge)].append(i)
+	# For each face, find all its neighbours
+	for notimportant, ts in sharededges.iteritems():
+		for a, b in combinations(ts, 2):
+			neighbours[a].append(b)
+			neighbours[b].append(a)
+	# Calculate all the edges for the dual
+	for t, nbs in neighbours.iteritems():
+		for nb in nbs:
+			edges.append((t, nb))
+	
+	### faceVerts + edges is the dual graph of the mesh
+	
 	
 	# TODO: find the maximal independent set in this dual
 	
 	return [(Vector([0, 0, 0]), Vector([1, 0, 0]), Vector([0, 1, 0])), (Vector([1, 0, 0]), Vector([1, 1, 0]), Vector([0, 1, 0]))]
-	
