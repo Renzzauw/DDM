@@ -22,7 +22,6 @@ def DDM_Practical1(context):
 	os.system('cls')
 	
 	# TODO: get the triangles for the active mesh and use show_mesh() to display a copy
-	print("yeet")
 	tris = get_triangles(context)
 	show_mesh(tris)
 
@@ -36,9 +35,10 @@ def DDM_Practical1(context):
 	print("Is orientable: ", is_orientable(tris))
 	
 	# TODO: print the genus of the active mesh
-	
+	print("Genus: ", genus(tris))
+
 	# TODO: use show_mesh() to display the maximal_independent_set of the dual of the active object
-	maximal_independent_set(tris)
+	#maximal_independent_set(tris)
 	
 	#print(get_triangles(context))
 
@@ -173,7 +173,14 @@ def is_orientable(triangles):
 	
 # Returns the genus of the given list of triangles
 def genus(triangles):
-	return -1
+	# Mesh is not a closed orientable surface, return -1
+	if not is_closed(triangles) and not is_orientable(triangles):
+		return -1
+	else:
+		euler = euler_characteristic(triangles)
+		# Get the genus with the euler chracteristic formula: χ = 2 − 2g 
+		g = (-euler + 2) / 2
+		return g
 
 # TODO: Fix assignment
 def maximal_independent_set(triangles):
