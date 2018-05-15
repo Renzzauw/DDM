@@ -143,7 +143,25 @@ def bounding_box(points):
 	
 	# TODO: implement
 
-	return (Vector([-1, -1, -1]), Vector([1, 1, 1]))
+	minX = points[0][0]
+	minY = points[0][1]
+	minZ = points[0][2]
+	maxX = points[0][0]
+	maxY = points[0][1]
+	maxZ = points[0][2]
+
+	# Get the minimal and maximal x, y and z values
+	for i in points:
+		minX = min(minX, points[i][0])
+		minY = min(minY, points[i][1])
+		minZ = min(minZ, points[i][2])
+
+		maxX = max(maxX, points[i][0])
+		maxY = max(maxY, points[i][1])
+		maxZ = max(maxZ, points[i][2])
+
+	# Return these corners
+	return (Vector[minX, minY, minZ], Vector[maxX, maxY, maxZ])
 	
 # The vector containing the values for '{c_m}'
 def constraint_points(points, normals, epsilon, radius):
