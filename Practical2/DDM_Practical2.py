@@ -1,4 +1,4 @@
-# File created on: 2018-05-08 14:48:33.927611
+# File created on: 2018-05-08 15:24:47.263919
 #
 # IMPORTANT:
 # ----------
@@ -200,6 +200,32 @@ def distance(a, b):
 # This function is the same as from the previous practical
 def show_mesh(triangles):
 	
-	# TODO: Copy from the previous Practical
-	
-	pass
+	# Create a mesh and object first
+	mesh = bpy.data.meshes.new("mesh")
+	obj = bpy.data.objects.new(bpy.context.scene.objects.active.name + " (copy)", mesh)
+	# Link the object to the scene
+	scene = bpy.context.scene
+	scene.objects.link(obj)
+	# Add the vertices of all triangles to a list
+	vertices = []
+	# Create a list for the faces too
+	faces = []
+	facecounter = 0
+	for t in triangles:
+		# Create a face (list of vertices of the triangle) and increment the index of the vertices
+		face = []
+		# Add all the vertices and face indexes that don't exist yet
+		for i in range(0, len(t)):
+			# Check if vertex is already added, if yes: add existing vertex to face; If no: create new vertex and add that
+			if t[i] in vertices:
+				face.append(vertices.index(t[i]))
+			else:
+				vertices.append(t[i])
+				face.append(facecounter)
+				facecounter += 1
+		# Add the face to the list of faces
+		faces.append(face)
+	# Add data to the mesh
+	mesh.from_pydata(vertices, [], faces)
+	# Update mesh changes
+	mesh.update()
