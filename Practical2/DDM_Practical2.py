@@ -51,7 +51,7 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		self.degree = degree
 		self.wendland_constant = wendland_constant
 		
-		# TODO: construct a ddm.Grid *** DONE *** 
+		# TODO: construct a ddm.Grid *** DONE (niet getest)*** 
 		# Use this grid for queries
 		self.grid = ddm.Grid([point.to_tuple() for point in points])
 	
@@ -74,6 +74,8 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		
 		# TODO: make sure that your radial query always contains enough points to a) ensure that the MLS is well defined, b) you always know if you are on the inside or outside of the object.
 		
+
+
 		return distance(Vector([0, 0, 0]), Vector([x, y, z])) - 1
 		
 		
@@ -131,9 +133,20 @@ def get_radius(points):
 # Returns the epsilon for the given point set
 def get_epsilon(points):
 	
-	# TODO: Implement
+	# TODO: Implement ***DONE (niet getest)***
+	maxDist = 0
+
+	# Get the amount of points
+	length = len(points)
+	# Get the largest distance between any of the 2 vectors
+	for i in range(0, length):
+		for j in range(0, length):
+			maxDist = max(distance(i, j), maxDist)
+
+	# As the assignment states, multiply it by 0.01
+	epsilon = 0.01 * maxDist
 	
-	return 1
+	return epsilon
 	
 # Returns the degree 'k' used in this reconstruction
 def get_degree():
