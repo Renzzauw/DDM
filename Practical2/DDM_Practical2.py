@@ -33,6 +33,7 @@ from math import sqrt
 # - (x_size, y_size, z_size) is the number of cubes in each direction
 # - cube_size is the length of the edge of a single cube
 #
+
 class My_Marching_Cubes(ddm.Marching_Cubes):
 	# You may place extra members and functions here
 	
@@ -50,9 +51,9 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		self.degree = degree
 		self.wendland_constant = wendland_constant
 		
-		# TODO: construct a ddm.Grid
+		# TODO: construct a ddm.Grid *** DONE *** 
 		# Use this grid for queries
-		self.grid = None
+		self.grid = ddm.Grid([point.to_tuple() for point in points])
 	
 	# Returns the normals belonging to a given (sub)set of points
 	def normals_for_points(self, points):
@@ -141,7 +142,7 @@ def get_degree():
 # Returns the minimum and the maximum corner of a point set
 def bounding_box(points):
 	
-	# TODO: implement
+	# TODO: implement ***DONE (moet nog getest worden)***
 
 	minX = points[0][0]
 	minY = points[0][1]
@@ -254,3 +255,7 @@ def show_mesh(triangles):
 	mesh.from_pydata(vertices, [], faces)
 	# Update mesh changes
 	mesh.update()
+
+#########################################################################
+# Extra functions we have created
+#########################################################################
