@@ -126,9 +126,20 @@ def get_normals(context):
 # Returns an query radius for the given point set
 def get_radius(points):
 	
-	# TODO: Implement
-	
-	return 1
+	# TODO: Implement ***DONE (niet getest)***
+
+	# Get the bounding box of the point cloud
+	bb = bounding_box(points)
+
+	# Get the dimensions of the bounding box
+	xsize = abs(bb[1][0] - bb[0][0])
+	ysize = abs(bb[1][1] - bb[0][1])
+	zsize = abs(bb[1][2] - bb[0][2])
+
+	# Get the smallest dimension of the bounding box and half it, this is the radius of the sphere
+	radius = min(xsize, ysize, zsize) / 2
+
+	return radius
 
 # Returns the epsilon for the given point set
 def get_epsilon(points):
@@ -155,7 +166,7 @@ def get_degree():
 # Returns the minimum and the maximum corner of a point set
 def bounding_box(points):
 	
-	# TODO: implement ***DONE (moet nog getest worden)***
+	# TODO: implement ***DONE (niet getest)***
 
 	minX = points[0][0]
 	minY = points[0][1]
