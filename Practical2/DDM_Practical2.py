@@ -139,6 +139,7 @@ def get_radius(points):
 	# Get the smallest dimension of the bounding box and half it, this is the radius of the sphere
 	radius = min(xsize, ysize, zsize) / 2
 
+	print("Radius: ", radius)
 	return radius
 
 # Returns the epsilon for the given point set
@@ -157,6 +158,7 @@ def get_epsilon(points):
 	# As the assignment states, multiply it by 0.01
 	epsilon = 0.01 * maxDist
 	
+	print("Epsilon: ", epsilon)
 	return epsilon
 	
 # Returns the degree 'k' used in this reconstruction
