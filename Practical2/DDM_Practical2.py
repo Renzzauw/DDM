@@ -126,18 +126,10 @@ def get_normals(context):
 # Returns an query radius for the given point set
 def get_radius(points):
 	
-	# TODO: Implement ***DONE (niet getest)***
+	# TODO: Implement 
 
-	# Get the bounding box of the point cloud
-	bb = bounding_box(points)
-
-	# Get the dimensions of the bounding box
-	xsize = abs(bb[1][0] - bb[0][0])
-	ysize = abs(bb[1][1] - bb[0][1])
-	zsize = abs(bb[1][2] - bb[0][2])
-
-	# Get the smallest dimension of the bounding box and half it, this is the radius of the sphere
-	radius = min(xsize, ysize, zsize) / 2
+	radius = 0
+	
 
 	print("Radius: ", radius)
 	return radius
@@ -199,9 +191,12 @@ def bounding_box(points):
 	
 # The vector containing the values for '{c_m}'
 def constraint_points(points, normals, epsilon, radius):
-	
+	# Column vector C volgens opdracht
 	# TODO: Implement
 	
+
+	# C = points + constraint points (normale points +- epsilon * normal) die binnen radius vallen
+
 	return [Vector([0, 0, 0])]
 
 # The vector 'd'
@@ -240,9 +235,12 @@ def MatrixC(q, constraints, degree):
 # Returns the Wendland weight for a given distance with shape/range parameter wendland_constant
 def Wendland(distance, wendland_constant):
 	
-	# TODO: Implement
+	# TODO: Implement ***DONE (niet getest)***
+
+	weight = ((1 - (distance/wendland_constant))**4) * (4*(distance/wendland_constant)+1)
+
 	
-	return 1
+	return weight
 
 # Returns the distance between vector 'a' and 'b'
 def distance(a, b):
