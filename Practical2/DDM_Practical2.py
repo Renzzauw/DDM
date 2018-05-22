@@ -126,11 +126,14 @@ def get_normals(context):
 # Returns an query radius for the given point set
 def get_radius(points):
 	
-	# TODO: Implement 
+	# TODO: Implement ***DONE***
 
-	radius = 0
-	
-
+	# Get the bounding box of the point set
+	boundingBox = bounding_box(points)
+	# Get the length of the diagonal of the bounding box
+	diagonal = distance(boundingBox[0], boundingBox[1])
+	# According to the assignment, multiply by 1/10 (or divide by 10)
+	radius = diagonal / 10
 	print("Radius: ", radius)
 	return radius
 
@@ -147,7 +150,7 @@ def get_epsilon(points):
 		for j in range(0, length):
 			maxDist = max(distance(i, j), maxDist)
 
-	# As the assignment states, multiply it by 0.01
+	# As the assignment states, multiply the longest distance by 0.01
 	epsilon = 0.01 * maxDist
 	
 	print("Epsilon: ", epsilon)
