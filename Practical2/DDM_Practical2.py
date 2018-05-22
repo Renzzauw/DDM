@@ -192,12 +192,33 @@ def bounding_box(points):
 # The vector containing the values for '{c_m}'
 def constraint_points(points, normals, epsilon, radius):
 
-	# TODO: Implement
+	# TODO: Implement MOET JE HIER AL AAN FITTING GEDAAN HEBBEN? <<<<<< Ik doe ook niks met radius hier
 	
+	# Get the points within the radius
+	#queryPoints = mc.query_points(points, radius)
+
+	# Create a list for all the points and their normals
+	c_m = []
+	# Create an index to easily look up the normal that belongs to the current point in the for-loop
+	index = 0
+	# For each point in the cloud, create its constraint points with the 
+	for p in points: #queryPoints:
+		# Add the original point to the list
+		c_m.append(p)
+		# Get the normal that belongs to the current point
+		normal = normals[index]
+		# Create the points +- normal * epsilon
+		e_n = epsilon * normal
+		n1 = p + e_n
+		n2 = p - e_n
+		# Add these points to c_m
+		c_m.append(n1)
+		c_m.append(n2)
+		# Increment index
+		index += 1
 
 	# C = points + constraint points (normale points +- epsilon * normal) die binnen radius vallen
-
-	return [Vector([0, 0, 0])]
+	return c_m
 
 # The vector 'd'
 def constraint_values(points, normals, epsilon, radius):
