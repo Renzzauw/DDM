@@ -223,7 +223,7 @@ def constraint_points(points, normals, epsilon, radius):
 # The vector 'd'
 def constraint_values(points, normals, epsilon, radius):
 	
-	# TODO: Implement
+	# TODO: Implement >>>>> net zoals hierboven ff kijken wat er met de radius moet gebeuren
 	
 	return [0]
 	
@@ -256,7 +256,7 @@ def MatrixC(q, constraints, degree):
 # Returns the Wendland weight for a given distance with shape/range parameter wendland_constant
 def Wendland(distance, wendland_constant):
 	
-	# TODO: Implement ***DONE (niet getest)***
+	# TODO: Implement ***DONE***
 	# Calculate the Wendland weigth using the formula from the lecture notes of lecture 7
 	weight = ((1 - (distance/wendland_constant))**4) * (4*(distance/wendland_constant)+1)
 
@@ -300,6 +300,3 @@ def show_mesh(triangles):
 	# Update mesh changes
 	mesh.update()
 
-#########################################################################
-# Extra functions we have created
-#########################################################################
