@@ -236,10 +236,9 @@ def MatrixC(q, constraints, degree):
 def Wendland(distance, wendland_constant):
 	
 	# TODO: Implement ***DONE (niet getest)***
-
+	# Calculate the Wendland weigth using the formula from the lecture notes of lecture 7
 	weight = ((1 - (distance/wendland_constant))**4) * (4*(distance/wendland_constant)+1)
 
-	
 	return weight
 
 # Returns the distance between vector 'a' and 'b'
