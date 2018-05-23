@@ -78,10 +78,14 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		
 		# Point q
 		q = Vector([x,y,z])
+		# Get the neighbours
+		neighbours = self.query_points(q, self.radius)
+		# Get their normals
+		normals = self.normals_for_points(neighbours)
 		# Constraint points
-		constraints = constraint_points(self.points, self.normals, self.epsilon, self.radius)
+		constraints = constraint_points(neighbours, normals, self.epsilon, self.radius)
 		# List d
-		d = constraint_values(self.points, self.normals, self.epsilon, self.radius)
+		d = constraint_values(neighbours, normals, self.epsilon, self.radius)
 		# d as a Matrix
 		dm = Matrix(d)
 		# Matrix C
@@ -285,6 +289,8 @@ def polynomial(p, a, degree):
 	
 	# TODO: Implement
 	
+
+
 
 
 
