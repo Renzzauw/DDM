@@ -122,31 +122,29 @@ def DDM_Practical2(context):
 
 	# TODO: modify this function so it performs reconstruction on the active point cloud
 	
+	# Get all the needed variables
 	points = get_vertices(context)
 	normals = get_normals(context)
 	epsilon = get_epsilon(points)
 	radius = get_radius(points)
 	degree = get_degree()
-	
-	# TODO: een goede wendland zoeken
-	#wendland_constant = 0.2 #maxdist
 	wendland_constant = get_radius(points)
 	mc = My_Marching_Cubes(points, normals, epsilon, radius, wendland_constant, degree)
 	
-	#triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
+	# Get the bounding box dimensions
 	bb = bounding_box(points)
 	distanceX = bb[1][0] - bb[0][0] 
 	distanceY = bb[1][1] - bb[0][1] 
 	distanceZ = bb[1][2] - bb[0][2] 
-
+	# Define a size of each box
 	boxSize = 0.4
-
+	# Calculate the amounts of boxes
 	boxCountX = math.ceil(distanceX / boxSize)
 	boxCountY = math.ceil(distanceY / boxSize)
 	boxCountZ = math.ceil(distanceZ / boxSize)
-	#triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), 20, 20, 20, 0.2)
+	# Generate the triangles
 	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), boxCountX, boxCountY, boxCountZ, boxSize)
-	
+	# Display the triangles
 	show_mesh(triangles)
 
 	
@@ -178,8 +176,6 @@ def get_normals(context):
 
 # Returns an query radius for the given point set
 def get_radius(points):
-	
-	# TODO: Implement ***DONE***
 
 	# Get the bounding box of the point set
 	boundingBox = bounding_box(points)
@@ -187,13 +183,11 @@ def get_radius(points):
 	diagonal = distance(boundingBox[0], boundingBox[1])
 	# According to the assignment, multiply by 1/10 (or divide by 10)
 	radius = diagonal / 10
-	#print("Radius: ", radius)
+
 	return radius
 
 # Returns the epsilon for the given point set
 def get_epsilon(points):
-	
-	# TODO: Implement ***DONE***
 
 	maxDist = 0
 	# Get the amount of points
@@ -205,8 +199,7 @@ def get_epsilon(points):
 
 	# As the assignment states, multiply the longest distance by 0.01
 	epsilon = 0.01 * maxDist
-	
-	#print("Epsilon: ", epsilon)
+
 	return epsilon
 	
 # Returns the degree 'k' used in this reconstruction
@@ -215,8 +208,6 @@ def get_degree():
 	
 # Returns the minimum and the maximum corner of a point set
 def bounding_box(points):
-
-	# TODO: implement ***DONE***
 
 	# Declare variables for the minimal and maximal x, y and z values
 	minX = 0
@@ -237,16 +228,13 @@ def bounding_box(points):
 	# Create the vectors
 	minVec = Vector([minX, minY, minZ])
 	maxVec = Vector([maxX, maxY, maxZ])
-	# Log the minimum and maximum bounding box points
-	#print("Bounding Box points, min: ", minVec, " max: ", maxVec )
+	
 	# Return these corners
 	return (minVec, maxVec)
 	
 # The vector containing the values for '{c_m}'
 def constraint_points(points, normals, epsilon, radius):
 
-	# TODO: Implement MOET JE HIER AL AAN FITTING GEDAAN HEBBEN? <<<<<< Ik doe ook niks met radius hier
-	
 	# Create a list for all the points and their normals
 	c_m = []
 	# Create an index to easily look up the normal that belongs to the current point in the for-loop
@@ -267,13 +255,10 @@ def constraint_points(points, normals, epsilon, radius):
 		# Increment index
 		index += 1
 
-	# C = points + constraint points (normale points +- epsilon * normal) die binnen radius vallen
 	return c_m
 
 # The vector 'd'
 def constraint_values(points, normals, epsilon, radius):
-	
-	# TODO: Implement ***DONE***
 
 	# Create an array for the constraint values
 	values = []
@@ -287,8 +272,6 @@ def constraint_values(points, normals, epsilon, radius):
 	
 # The vector (NOT matrix) 'W'
 def weights(q, constraints, wendland_constant):
-	
-	# TODO: Implement ***DONE***
 
 	# Create a list for all the wendland weigths
 	constraintWeigths = []
@@ -305,8 +288,6 @@ def indeterminate(q, degree):
 
 # For a given list of coefficients a, use this to find the actual value for 'f(p)'
 def polynomial(p, a, degree):
-	
-	# TODO: Implement ***DONE***
 
 	degreePlusOne = degree + 1
 	result = 0
@@ -321,8 +302,6 @@ def polynomial(p, a, degree):
 # Returns 'C'
 # NOTE: There is no need for this function to be passed the parameters 'wendland_constant', 'epsilon' and 'radius', you can structure the assignment in such a way this is not necessary.
 def MatrixC(q, constraints, degree):	
-	
-	# TODO: Implement ***DONE????***
 
 	# Create a list for each row of the matrix
 	rows = []
@@ -334,8 +313,7 @@ def MatrixC(q, constraints, degree):
 	
 # Returns the Wendland weight for a given distance with shape/range parameter wendland_constant
 def Wendland(distance, wendland_constant):
-	
-	# TODO: Implement ***DONE***
+
 	# Calculate the Wendland weigth using the formula from the lecture notes of lecture 7
 	weight = ((1 - (distance/wendland_constant))**4) * (4*(distance/wendland_constant)+1)
 
@@ -348,7 +326,7 @@ def distance(a, b):
 # Builds a mesh using a list of triangles
 # This function is the same as from the previous practical
 def show_mesh(triangles):
-	
+
 	# Create a mesh and object first
 	mesh = bpy.data.meshes.new("mesh")
 	obj = bpy.data.objects.new(bpy.context.scene.objects.active.name + " (copy)", mesh)
