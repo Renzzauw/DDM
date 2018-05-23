@@ -135,8 +135,17 @@ def DDM_Practical2(context):
 	
 	#triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
 	bb = bounding_box(points)
-	#boxcount = bb[0][0] - 
-	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), 20, 20, 20, 0.2)
+	distanceX = bb[1][0] - bb[0][0] 
+	distanceY = bb[1][1] - bb[0][1] 
+	distanceZ = bb[1][2] - bb[0][2] 
+
+	boxSize = 0.4
+
+	boxCountX = math.ceil(distanceX / boxSize)
+	boxCountY = math.ceil(distanceY / boxSize)
+	boxCountZ = math.ceil(distanceZ / boxSize)
+	#triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), 20, 20, 20, 0.2)
+	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), boxCountX, boxCountY, boxCountZ, boxSize)
 	
 	show_mesh(triangles)
 
