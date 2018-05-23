@@ -80,8 +80,7 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		# Point q
 		q = Vector([x,y,z])
 		# Get the neighbours
-		neighbours = self.query_points(q, self.radius)
-
+		neighbours = self.query_points((x,y,z), 500)#self.radius)
 		# >>> radius vergroten of verkleinen aan de hand van aantal neighbours <<<
 
 		# Get their normals
@@ -280,8 +279,8 @@ def weights(q, constraints, wendland_constant):
 	# For each given constraint, determine its wendland weigth and add it to the list
 	for p in constraints:
 		ww = Wendland(distance(p, q), wendland_constant)
-		constraintWeigths.append(ww)
-	
+		constraintWeigths.append(ww)	
+
 	return constraintWeigths
 
 # The vector that contains the numerical values of each term of the polynomial, this is NOT vector 'a'
@@ -299,7 +298,7 @@ def polynomial(p, a, degree):
 	for i in range(0, degreePlusOne):
 		for j in range(0 , degreePlusOne):
 			for k in range(0, degreePlusOne):
-				result += a[degreePlusOne*degreePlusOne*i+degreePlusOne*j+k] * p[0]**i * p[1]**j * p[2]**k
+				result += a[degreePlusOne*degreePlusOne*i+degreePlusOne*j+k].item() * p[0]**i * p[1]**j * p[2]**k
 
 	return result
 	
@@ -315,7 +314,7 @@ def MatrixC(q, constraints, degree):
 	for cons in constraints:
 		rows.append(indeterminate(cons, degree))
 	
-	return new_Matrix(rows)
+	return Matrix(rows)
 	
 # Returns the Wendland weight for a given distance with shape/range parameter wendland_constant
 def Wendland(distance, wendland_constant):
