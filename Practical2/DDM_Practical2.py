@@ -75,11 +75,15 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 	def sample(self, x, y, z):
 		
 		# TODO: make sure that your radial query always contains enough points to a) ensure that the MLS is well defined, b) you always know if you are on the inside or outside of the object.
-		
+		# ***DONE***
+
 		# Point q
 		q = Vector([x,y,z])
 		# Get the neighbours
 		neighbours = self.query_points(q, self.radius)
+
+		# >>> radius vergroten of verkleinen aan de hand van aantal neighbours <<<
+
 		# Get their normals
 		normals = self.normals_for_points(neighbours)
 		# Constraint points
@@ -287,14 +291,17 @@ def indeterminate(q, degree):
 # For a given list of coefficients a, use this to find the actual value for 'f(p)'
 def polynomial(p, a, degree):
 	
-	# TODO: Implement
-	
+	# TODO: Implement ***DONE***
 
+	degreePlusOne = degree + 1
+	result = 0
+	# Solve f(p) by addding up each part of the polynomial
+	for i in range(0, degreePlusOne):
+		for j in range(0 , degreePlusOne):
+			for k in range(0, degreePlusOne):
+				result += a[degreePlusOne*degreePlusOne*i+degreePlusOne*j+k] * p[0]**i * p[1]**j * p[2]**k
 
-
-
-
-	return 0
+	return result
 	
 # Returns 'C'
 # NOTE: There is no need for this function to be passed the parameters 'wendland_constant', 'epsilon' and 'radius', you can structure the assignment in such a way this is not necessary.
