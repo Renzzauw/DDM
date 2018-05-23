@@ -73,15 +73,19 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 	# This function returns the result of estimated function f(q) which is essentially the entire estimation plus the calculation of its result, note that the estimated polynomial is different for every q = (x, y, z)
 	# berekent a <<< gebruikt polynomial functie
 	def sample(self, x, y, z):
-		
+		minNeighbours = 5
 		# TODO: make sure that your radial query always contains enough points to a) ensure that the MLS is well defined, b) you always know if you are on the inside or outside of the object.
 		# ***DONE***
 
 		# Point q
 		q = Vector([x,y,z])
 		# Get the neighbours
-		neighbours = self.query_points((x,y,z), 500)#self.radius)
-		# >>> radius vergroten of verkleinen aan de hand van aantal neighbours <<<
+
+		radius = 1
+		neighbours = self.query_points((x,y,z), radius)
+		while len(neighbours) < minNeighbours:
+			radius = radius * 2
+			neighbours = self.query_points((x,y,z), radius)
 
 		# Get their normals
 		normals = self.normals_for_points(neighbours)
@@ -103,7 +107,7 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		# Solve Ct * W * C
 		leftHandSide = Ct * Wm * C
 		# Solve Ct * W * d
-		rightHandSide = Ct * Wm * dm
+		rightHandSide = Ct * Wm * dm.transpose()
 
 		# Solve LHS = RHS and get a from it
 		a = numpy.linalg.solve(leftHandSide, rightHandSide)
@@ -266,7 +270,7 @@ def constraint_values(points, normals, epsilon, radius):
 		values.append(0)
 		values.append(epsilon)
 		values.append(-epsilon)
-	
+
 	return values
 	
 # The vector (NOT matrix) 'W'
