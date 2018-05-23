@@ -63,6 +63,7 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		return result
 	
 	# Queries the grid for all points around q within radius
+	# q = HOEKPUNT
 	def query_points(self, q, radius):
 		result = []
 		for point in self.grid.query(q, radius):
@@ -84,13 +85,16 @@ def DDM_Practical2(context):
 
 	# TODO: modify this function so it performs reconstruction on the active point cloud
 	
-	points = []
-	normals = []
+	points = get_vertices(context)
+	normals = get_normals(context)
 	epsilon = get_epsilon(points)
 	radius = get_radius(points)
 	degree = get_degree()
 	
-	mc = My_Marching_Cubes(points, normals, epsilon, radius, degree)
+	# TODO: een goede wendland zoeken
+	wendland_constant = 4
+
+	mc = My_Marching_Cubes(points, normals, epsilon, radius, wendland_constant, degree)
 	
 	triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
 	
@@ -148,7 +152,7 @@ def get_epsilon(points):
 	# Get the largest distance between any of the 2 vectors
 	for i in range(0, length):
 		for j in range(0, length):
-			maxDist = max(distance(i, j), maxDist)
+			maxDist = max(distance(points[i], points[j]), maxDist)
 
 	# As the assignment states, multiply the longest distance by 0.01
 	epsilon = 0.01 * maxDist
@@ -162,18 +166,18 @@ def get_degree():
 	
 # Returns the minimum and the maximum corner of a point set
 def bounding_box(points):
-	
+
 	# TODO: implement ***DONE***
 
 	# Declare variables for the minimal and maximal x, y and z values
-	minX = points[0][0]
-	minY = points[0][1]
-	minZ = points[0][2]
-	maxX = points[0][0]
-	maxY = points[0][1]
-	maxZ = points[0][2]
+	minX = 0
+	minY = 0
+	minZ = 0
+	maxX = 0
+	maxY = 0
+	maxZ = 0
 	# Get the minimal and maximal x, y and z values
-	for i in points:
+	for i in range(len(points)):
 		minX = min(minX, points[i][0])
 		minY = min(minY, points[i][1])
 		minZ = min(minZ, points[i][2])
@@ -182,8 +186,8 @@ def bounding_box(points):
 		maxY = max(maxY, points[i][1])
 		maxZ = max(maxZ, points[i][2])
 	# Create the vectors
-	minVec = Vector[minX, minY, minZ]
-	maxVec = Vector[maxX, maxY, maxZ]
+	minVec = Vector([minX, minY, minZ])
+	maxVec = Vector([maxX, maxY, maxZ])
 	# Log the minimum and maximum bounding box points
 	print("Bounding Box points, min: ", minVec, " max: ", maxVec )
 	# Return these corners
@@ -223,16 +227,29 @@ def constraint_points(points, normals, epsilon, radius):
 # The vector 'd'
 def constraint_values(points, normals, epsilon, radius):
 	
-	# TODO: Implement >>>>> net zoals hierboven ff kijken wat er met de radius moet gebeuren
+	# TODO: Implement ***DONE***
+
+	values = []
+	for p in points:
+		values.append(0)
+		values.append(epsilon)
+		values.append(-epsilon)
 	
 	return [0]
 	
 # The vector (NOT matrix) 'W'
 def weights(q, constraints, wendland_constant):
 	
-	# TODO: Implement
+	# TODO: Implement ***DONE***
+
+	# Create a list for all the wendland weigths
+	constraintWeigths = []
+	# For each given constraint, determine its wendland weigth and add it to the list
+	for p in constraints:
+		ww = Wendland(distance(p, q), wendland_constant)
+		constraintWeigths.append(ww)
 	
-	return [0]
+	return constraintWeigths
 
 # The vector that contains the numerical values of each term of the polynomial, this is NOT vector 'a'
 def indeterminate(q, degree):
