@@ -133,7 +133,10 @@ def DDM_Practical2(context):
 
 	mc = My_Marching_Cubes(points, normals, epsilon, radius, wendland_constant, degree)
 	
-	triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
+	#triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
+	bb = bounding_box(points)
+	#boxcount = bb[0][0] - 
+	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), math.ceil(bb[1][0]), math.ceil(bb[1][1]), math.ceil(bb[1][2]), 0.2)
 	
 	show_mesh(triangles)
 
