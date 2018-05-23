@@ -129,8 +129,8 @@ def DDM_Practical2(context):
 	degree = get_degree()
 	
 	# TODO: een goede wendland zoeken
-	wendland_constant = 4
-
+	#wendland_constant = 0.2 #maxdist
+	wendland_constant = get_radius(points)
 	mc = My_Marching_Cubes(points, normals, epsilon, radius, wendland_constant, degree)
 	
 	#triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
