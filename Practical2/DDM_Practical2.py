@@ -51,7 +51,6 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		self.degree = degree
 		self.wendland_constant = wendland_constant
 		
-		# TODO: construct a ddm.Grid *** DONE (niet getest)*** 
 		# Use this grid for queries
 		self.grid = ddm.Grid([point.to_tuple() for point in points])
 	
@@ -73,10 +72,8 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 	# This function returns the result of estimated function f(q) which is essentially the entire estimation plus the calculation of its result, note that the estimated polynomial is different for every q = (x, y, z)
 	# berekent a <<< gebruikt polynomial functie
 	def sample(self, x, y, z):
+		
 		minNeighbours = 5
-		# TODO: make sure that your radial query always contains enough points to a) ensure that the MLS is well defined, b) you always know if you are on the inside or outside of the object.
-		# ***DONE***
-
 		# Point q
 		q = Vector([x,y,z])
 		# Get the neighbours
@@ -119,8 +116,6 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		
 # This function is called when the DDM Practical 2 operator is selected in Blender.
 def DDM_Practical2(context):
-
-	# TODO: modify this function so it performs reconstruction on the active point cloud
 	
 	# Get all the needed variables
 	points = get_vertices(context)
