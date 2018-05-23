@@ -81,7 +81,7 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		q = Vector([x,y,z])
 		# Get the neighbours
 
-		radius = 1
+		radius = self.radius
 		neighbours = self.query_points((x,y,z), radius)
 		while len(neighbours) < minNeighbours:
 			radius = radius * 2
@@ -136,7 +136,7 @@ def DDM_Practical2(context):
 	#triangles = mc.calculate(-1, -1, -1, 20, 20, 20, 0.1)
 	bb = bounding_box(points)
 	#boxcount = bb[0][0] - 
-	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), math.ceil(bb[1][0]), math.ceil(bb[1][1]), math.ceil(bb[1][2]), 0.2)
+	triangles = mc.calculate(math.ceil(bb[0][0]), math.ceil(bb[0][1]), math.ceil(bb[0][2]), 20, 20, 20, 0.2)
 	
 	show_mesh(triangles)
 
@@ -178,7 +178,7 @@ def get_radius(points):
 	diagonal = distance(boundingBox[0], boundingBox[1])
 	# According to the assignment, multiply by 1/10 (or divide by 10)
 	radius = diagonal / 10
-	print("Radius: ", radius)
+	#print("Radius: ", radius)
 	return radius
 
 # Returns the epsilon for the given point set
@@ -197,7 +197,7 @@ def get_epsilon(points):
 	# As the assignment states, multiply the longest distance by 0.01
 	epsilon = 0.01 * maxDist
 	
-	print("Epsilon: ", epsilon)
+	#print("Epsilon: ", epsilon)
 	return epsilon
 	
 # Returns the degree 'k' used in this reconstruction
@@ -229,7 +229,7 @@ def bounding_box(points):
 	minVec = Vector([minX, minY, minZ])
 	maxVec = Vector([maxX, maxY, maxZ])
 	# Log the minimum and maximum bounding box points
-	print("Bounding Box points, min: ", minVec, " max: ", maxVec )
+	#print("Bounding Box points, min: ", minVec, " max: ", maxVec )
 	# Return these corners
 	return (minVec, maxVec)
 	
