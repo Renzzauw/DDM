@@ -71,13 +71,39 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		return result
 	
 	# This function returns the result of estimated function f(q) which is essentially the entire estimation plus the calculation of its result, note that the estimated polynomial is different for every q = (x, y, z)
+	# berekent a <<< gebruikt polynomial functie
 	def sample(self, x, y, z):
 		
 		# TODO: make sure that your radial query always contains enough points to a) ensure that the MLS is well defined, b) you always know if you are on the inside or outside of the object.
 		
+		# Point q
+		q = Vector([x,y,z])
+		# Constraint points
+		constraints = constraint_points(self.points, self.normals, self.epsilon, self.radius)
+		# List d
+		d = constraint_values(self.points, self.normals, self.epsilon, self.radius)
+		# d as a Matrix
+		dm = Matrix(d)
+		# Matrix C
+		C = MatrixC(q, constraints, self.degree)
+		# Transpose of C
+		Ct = C.transpose()
+		# List W
+		W = weights(q, constraints, self.wendland_constant)
+		# W in matrix form
+		Wm = numpy.diag(W)
 
+		# Solve Ct * W * C
+		leftHandSide = Ct * Wm * C
+		# Solve Ct * W * d
+		rightHandSide = Ct * Wm * dm
 
-		return distance(Vector([0, 0, 0]), Vector([x, y, z])) - 1
+		# Solve LHS = RHS and get a from it
+		a = numpy.linalg.solve(leftHandSide, rightHandSide)
+		# Get f(p)
+		fp = polynomial(q, a, self.degree)
+		
+		return fp
 		
 		
 # This function is called when the DDM Practical 2 operator is selected in Blender.
