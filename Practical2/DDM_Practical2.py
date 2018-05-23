@@ -198,9 +198,6 @@ def constraint_points(points, normals, epsilon, radius):
 
 	# TODO: Implement MOET JE HIER AL AAN FITTING GEDAAN HEBBEN? <<<<<< Ik doe ook niks met radius hier
 	
-	# Get the points within the radius
-	#queryPoints = mc.query_points(points, radius)
-
 	# Create a list for all the points and their normals
 	c_m = []
 	# Create an index to easily look up the normal that belongs to the current point in the for-loop
@@ -229,13 +226,15 @@ def constraint_values(points, normals, epsilon, radius):
 	
 	# TODO: Implement ***DONE***
 
+	# Create an array for the constraint values
 	values = []
+	# Add the constraint values to the list
 	for p in points:
 		values.append(0)
 		values.append(epsilon)
 		values.append(-epsilon)
 	
-	return [0]
+	return values
 	
 # The vector (NOT matrix) 'W'
 def weights(q, constraints, wendland_constant):
@@ -260,15 +259,24 @@ def polynomial(p, a, degree):
 	
 	# TODO: Implement
 	
+
+
+
 	return 0
 	
 # Returns 'C'
 # NOTE: There is no need for this function to be passed the parameters 'wendland_constant', 'epsilon' and 'radius', you can structure the assignment in such a way this is not necessary.
 def MatrixC(q, constraints, degree):	
 	
-	# TODO: Implement
+	# TODO: Implement ***DONE????***
+
+	# Create a list for each row of the matrix
+	rows = []
+	# Add each indeterminate to the list
+	for cons in constraints:
+		rows.append(indeterminate(cons, degree))
 	
-	return new_Matrix([1, 1])
+	return new_Matrix(rows)
 	
 # Returns the Wendland weight for a given distance with shape/range parameter wendland_constant
 def Wendland(distance, wendland_constant):
