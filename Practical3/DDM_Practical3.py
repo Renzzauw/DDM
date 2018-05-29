@@ -14,13 +14,33 @@ import numpy
 # To view the printed output toggle the system console in "Window -> Toggle System Console"
 
 def mesh_from_array(A, n):
+	
+	array = []
+
+	#for y in range(0, n):
+	#	for x in range(0, n):
+	#		array.append(())
 	return []
 	
 def De_Casteljau(A, n, s):
 	return []
 
 def control_mesh(n, length):
-	return []
+	# Create an array for the vertices
+	vertices = []
+	# Calculate the distance between each vertex
+	distance = length / (n - 1)
+	# Generate the vertices sorted by y and then x
+	# The z-position is generated randomly
+	for y in range(0, n):
+		for x in range(0, n):
+			xpos = x * distance
+			ypos = y * distance
+			zpos = numpy.random.random_sample() * 5
+			vertex = (xpos, ypos, zpos)
+			vertices.append(vertex)
+	
+	return vertices
 	
 def line_intersect(A, n, p1, p2, e):
 	return False
@@ -35,6 +55,7 @@ def DDM_Practical3(context):
 	s = 3
 	
 	A = control_mesh(n, length)
+	print(A)
 	B = De_Casteljau(A, n, s)
 	
 	# TODO: Calculate the new size of the subdivided surface
