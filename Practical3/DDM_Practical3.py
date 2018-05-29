@@ -1,5 +1,9 @@
 # File created on: 2018-04-26 14:54:00.775450
 #
+# MADE BY:
+# - 5964962 Renzo Schindeler
+# - 5845866 Kasper Nooteboom
+#
 # IMPORTANT:
 # ----------
 # - Before making a new Practical always make sure you have the latest version of the addon!
