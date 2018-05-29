@@ -25,7 +25,8 @@ def mesh_from_array(A, n):
 			rightup = A[ ((y + 1) * n) + (x + 1)]
 			t1 = [current, right, up]
 			t2 = [right, rightup, up]
-			vertices.append(t1, t2)
+			vertices.append(t1)
+			vertices.append(t2)
 
 
 
@@ -45,7 +46,7 @@ def control_mesh(n, length):
 		for x in range(0, n):
 			xpos = x * distance
 			ypos = y * distance
-			zpos = numpy.random.random_sample() * 5
+			zpos = numpy.random.random_sample() * 0.5
 			vertex = (xpos, ypos, zpos)
 			vertices.append(vertex)
 	
@@ -70,7 +71,8 @@ def DDM_Practical3(context):
 	n_B = subdivisions(1, s)
 	
 	show_mesh(mesh_from_array(B, n_B))
-	
+	show_mesh(mesh_from_array(A, n))
+
 	p1 = (1,2,3)
 	p2 = (3,4,5)
 	
