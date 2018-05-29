@@ -15,12 +15,21 @@ import numpy
 
 def mesh_from_array(A, n):
 	
-	array = []
+	vertices = []
 
-	#for y in range(0, n):
-	#	for x in range(0, n):
-	#		array.append(())
-	return []
+	for y in range(0, n - 1):
+		for x in range(0, n - 1):
+			current = A[y * n + x]
+			up = A[(y + 1) * n + x]
+			right = A[ (y * n) + (x + 1)]
+			rightup = A[ ((y + 1) * n) + (x + 1)]
+			t1 = [current, right, up]
+			t2 = [right, rightup, up]
+			vertices.append(t1, t2)
+
+
+
+	return vertices
 	
 def De_Casteljau(A, n, s):
 	return []
@@ -55,7 +64,6 @@ def DDM_Practical3(context):
 	s = 3
 	
 	A = control_mesh(n, length)
-	print(A)
 	B = De_Casteljau(A, n, s)
 	
 	# TODO: Calculate the new size of the subdivided surface
@@ -71,4 +79,32 @@ def DDM_Practical3(context):
 # Builds a mesh using a list of triangles
 # This function is the same as the previous practical
 def show_mesh(triangles):
-	pass
+	# Create a mesh and object first
+	mesh = bpy.data.meshes.new("mesh")
+	obj = bpy.data.objects.new("Mesh", mesh)
+	# Link the object to the scene
+	scene = bpy.context.scene
+	scene.objects.link(obj)
+	# Add the vertices of all triangles to a list
+	vertices = []
+	# Create a list for the faces too
+	faces = []
+	facecounter = 0
+	for t in triangles:
+		# Create a face (list of vertices of the triangle) and increment the index of the vertices
+		face = []
+		# Add all the vertices and face indexes that don't exist yet
+		for i in range(0, len(t)):
+			# Check if vertex is already added, if yes: add existing vertex to face; If no: create new vertex and add that
+			if t[i] in vertices:
+				face.append(vertices.index(t[i]))
+			else:
+				vertices.append(t[i])
+				face.append(facecounter)
+				facecounter += 1
+		# Add the face to the list of faces
+		faces.append(face)
+	# Add data to the mesh
+	mesh.from_pydata(vertices, [], faces)
+	# Update mesh changes
+	mesh.update()
