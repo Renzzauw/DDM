@@ -16,7 +16,7 @@ import numpy
 def mesh_from_array(A, n):
 	
 	vertices = []
-
+	print(A)
 	for y in range(0, n - 1):
 		for x in range(0, n - 1):
 			current = A[y * n + x]
@@ -33,7 +33,51 @@ def mesh_from_array(A, n):
 	return vertices
 	
 def De_Casteljau(A, n, s):
+	
+	if (s == 0):
+		return A
+
+	numberOfPoints = (n - 1) * s + n
+
+	segmentSize = (1/(n-1))/(s+1)
+
+	points = []
+
+	for i in range(1, numberOfPoints - 1):
+		point = i * segmentSize
+		points.append(point)
+
+	segmentList = []
+	for x in range(0,n):
+		lijst = []
+		for y in range(0,n):
+			lijst.append(A[x+n*y])
+		segmentList.append(lijst)	
+		
+	puntenLijst = []
+	for i in n:
+		puntenLijst.append(A[i])
+	
+	for t in range(0, len(points)):
+		for i in segmentList:
+			p = F(i)
+			puntenLijst.append(p)
+
+	for i in range(len(A)-n, len(A)):
+		puntenLijst.append(A[i])
+
+	
+
 	return []
+
+def F(C, t):
+	while len(C) > 1:
+		C = CasteljauStep(C, t)
+
+	return C[0]
+
+def CasteljauStep():
+
 
 def control_mesh(n, length):
 	# Create an array for the vertices
@@ -71,7 +115,7 @@ def DDM_Practical3(context):
 	n_B = subdivisions(1, s)
 	
 	show_mesh(mesh_from_array(B, n_B))
-	show_mesh(mesh_from_array(A, n))
+	#show_mesh(mesh_from_array(A, n))
 
 	p1 = (1,2,3)
 	p2 = (3,4,5)
