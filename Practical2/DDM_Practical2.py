@@ -1,5 +1,9 @@
 # File created on: 2018-05-08 15:24:47.263919
 #
+# MADE BY:
+# - 5964962 Renzo Schindeler
+# - 5845866 Kasper Nooteboom
+#
 # IMPORTANT:
 # ----------
 # - Before making a new Practical always make sure you have the latest version of the addon!
@@ -62,7 +66,6 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		return result
 	
 	# Queries the grid for all points around q within radius
-	# q = HOEKPUNT
 	def query_points(self, q, radius):
 		result = []
 		for point in self.grid.query(q, radius):
@@ -70,7 +73,6 @@ class My_Marching_Cubes(ddm.Marching_Cubes):
 		return result
 	
 	# This function returns the result of estimated function f(q) which is essentially the entire estimation plus the calculation of its result, note that the estimated polynomial is different for every q = (x, y, z)
-	# berekent a <<< gebruikt polynomial functie
 	def sample(self, x, y, z):
 		
 		minNeighbours = 5
