@@ -32,8 +32,6 @@ def mesh_from_array(A, n):
 			vertices.append(t1)
 			vertices.append(t2)
 
-
-
 	return vertices
 	
 def De_Casteljau(A, n, s):
@@ -42,45 +40,66 @@ def De_Casteljau(A, n, s):
 		return A
 
 	numberOfPoints = (n - 1) * s + n
+	denominator = numberOfPoints - 1
 
-	segmentSize = (1/(n-1))/(s+1)
-
-	points = []
-
-	for i in range(1, numberOfPoints - 1):
-		point = i * segmentSize
-		points.append(point)
-
-	segmentList = []
+	# Zet alle punten in A om in lijsten van punten in y-richting met grootte n
+	lijstenInYRichting = []
 	for x in range(0,n):
 		lijst = []
 		for y in range(0,n):
-			lijst.append(A[x+n*y])
-		segmentList.append(lijst)	
-		
-	puntenLijst = []
-	for i in n:
-		puntenLijst.append(A[i])
-	
-	for t in range(0, len(points)):
-		for i in segmentList:
-			p = F(i)
-			puntenLijst.append(p)
+			lijst.append(A[y*n+x])
+		lijstenInYRichting.append(lijst)	
 
-	for i in range(len(A)-n, len(A)):
-		puntenLijst.append(A[i])
+	pointsAfterY = []
+
+	# Ga voor iedere lijst in y-richting subdividen
+	for i in lijstenInYRichting:
+		lijst = i
+		newPoints = []
+		for t in range(0, numberOfPoints): #+ 1???
+			point = CasteljauStep(lijst, t/denominator)
+			pointsAfterY.append(point)
+
 
 	
 
 	return []
+	
+	# for i in range(1, numberOfPoints - 1):
+	# 	point = i * segmentSize
+	# 	points.append(point)
 
-def F(C, t):
-	while len(C) > 1:
-		C = CasteljauStep(C, t)
+	# segmentList = []
+	# for x in range(0,n):
+	# 	lijst = []
+	# 	for y in range(0,n):
+	# 		lijst.append(A[x+n*y])
+	# 	segmentList.append(lijst)	
+		
+	# puntenLijst = []
+	# for i in n:
+	# 	puntenLijst.append(A[i])
+	
+	# for t in range(0, len(points)):
+	# 	for i in segmentList:
+	# 		p = F(i)
+	# 		puntenLijst.append(p)
 
-	return C[0]
+	# for i in range(len(A)-n, len(A)):
+	# 	puntenLijst.append(A[i])
 
-def CasteljauStep():
+
+# Voer De Casteljau uit op een gegeven breuk en return het bijbehorende punt
+def CasteljauStep(C, t):
+	points = C
+	while len(points) > 1:
+		newPoints = []
+		for i in range(0, len(points)-1):
+			pos = ((points[i][0] + t * (points[i+1][0]-points[i][0])), (points[i][1] + t * (points[i+1][1]-points[i][1])))
+			newPoints.append(pos)
+		points = newPoints
+
+	return points[0]
 
 
 def control_mesh(n, length):
