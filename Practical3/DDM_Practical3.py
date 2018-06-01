@@ -20,7 +20,8 @@ import numpy
 def mesh_from_array(A, n):
 	
 	vertices = []
-	print(A)
+	# TODO dit uncommenten
+	#print(A)
 	for y in range(0, n - 1):
 		for x in range(0, n - 1):
 			current = A[y * n + x]
@@ -50,20 +51,35 @@ def De_Casteljau(A, n, s):
 			lijst.append(A[y*n+x])
 		lijstenInYRichting.append(lijst)	
 
-	pointsAfterY = []
+	pointsAfterYSubDiv = []
 
 	# Ga voor iedere lijst in y-richting subdividen
 	for i in lijstenInYRichting:
 		lijst = i
-		newPoints = []
 		for t in range(0, numberOfPoints): #+ 1???
 			point = CasteljauStep(lijst, t/denominator)
-			pointsAfterY.append(point)
+			pointsAfterYSubDiv.append(point)
 
+	# Zet alle punten in A om in lijsten van punten in x-richting met grootte n
+	lijstenInXRichting = []
+	for x in range(0,n):
+		lijst = []
+		for y in range(0,n):
+			lijst.append(pointsAfterYSubDiv[y+x*n])
+		lijstenInXRichting.append(lijst)	
 
-	
+	pointsAfterXSubDiv = []
 
-	return []
+	# Ga voor iedere lijst in x-richting subdividen
+	for i in lijstenInXRichting:
+		lijst = i
+		for t in range(0, numberOfPoints): #+ 1???
+			point = CasteljauStep(lijst, t/denominator)
+			pointsAfterXSubDiv.append(point)
+
+	print(pointsAfterXSubDiv)
+
+	return pointsAfterXSubDiv
 	
 	# for i in range(1, numberOfPoints - 1):
 	# 	point = i * segmentSize
@@ -144,6 +160,7 @@ def DDM_Practical3(context):
 	p2 = (3,4,5)
 	
 	print(line_intersect(A, n, p1, p2, 0.01))
+	
 	
 # Builds a mesh using a list of triangles
 # This function is the same as the previous practical
