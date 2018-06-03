@@ -20,8 +20,7 @@ import numpy
 def mesh_from_array(A, n):
 	
 	vertices = []
-	# TODO dit uncommenten
-	#print(A)
+	print(A)
 	for y in range(0, n - 1):
 		for x in range(0, n - 1):
 			current = A[y * n + x]
@@ -48,7 +47,7 @@ def De_Casteljau(A, n, s):
 	for x in range(0,n):
 		lijst = []
 		for y in range(0,n):
-			lijst.append(A[y*n+x])
+			lijst.append(A[y*n+x])	
 		lijstenInYRichting.append(lijst)	
 
 	pointsAfterYSubDiv = []
@@ -56,16 +55,16 @@ def De_Casteljau(A, n, s):
 	# Ga voor iedere lijst in y-richting subdividen
 	for i in lijstenInYRichting:
 		lijst = i
-		for t in range(0, numberOfPoints): #+ 1???
+		for t in range(0, numberOfPoints):
 			point = CasteljauStep(lijst, t/denominator)
 			pointsAfterYSubDiv.append(point)
 
 	# Zet alle punten in A om in lijsten van punten in x-richting met grootte n
 	lijstenInXRichting = []
-	for x in range(0,n):
+	for x in range(0, numberOfPoints):
 		lijst = []
-		for y in range(0,n):
-			lijst.append(pointsAfterYSubDiv[y+x*n])
+		for y in range(0, n):
+			lijst.append(pointsAfterYSubDiv[y*numberOfPoints+x])
 		lijstenInXRichting.append(lijst)	
 
 	pointsAfterXSubDiv = []
@@ -73,45 +72,19 @@ def De_Casteljau(A, n, s):
 	# Ga voor iedere lijst in x-richting subdividen
 	for i in lijstenInXRichting:
 		lijst = i
-		for t in range(0, numberOfPoints): #+ 1???
+		for t in range(0, numberOfPoints):
 			point = CasteljauStep(lijst, t/denominator)
 			pointsAfterXSubDiv.append(point)
 
-	print(pointsAfterXSubDiv)
-
 	return pointsAfterXSubDiv
 	
-	# for i in range(1, numberOfPoints - 1):
-	# 	point = i * segmentSize
-	# 	points.append(point)
-
-	# segmentList = []
-	# for x in range(0,n):
-	# 	lijst = []
-	# 	for y in range(0,n):
-	# 		lijst.append(A[x+n*y])
-	# 	segmentList.append(lijst)	
-		
-	# puntenLijst = []
-	# for i in n:
-	# 	puntenLijst.append(A[i])
-	
-	# for t in range(0, len(points)):
-	# 	for i in segmentList:
-	# 		p = F(i)
-	# 		puntenLijst.append(p)
-
-	# for i in range(len(A)-n, len(A)):
-	# 	puntenLijst.append(A[i])
-
-
 # Voer De Casteljau uit op een gegeven breuk en return het bijbehorende punt
 def CasteljauStep(C, t):
 	points = C
 	while len(points) > 1:
 		newPoints = []
 		for i in range(0, len(points)-1):
-			pos = ((points[i][0] + t * (points[i+1][0]-points[i][0])), (points[i][1] + t * (points[i+1][1]-points[i][1])))
+			pos = ((points[i][0] + t * (points[i+1][0]-points[i][0])), (points[i][1] + t * (points[i+1][1]-points[i][1])), (points[i][2] + t * (points[i+1][2]-points[i][2])))
 			newPoints.append(pos)
 		points = newPoints
 
@@ -129,7 +102,10 @@ def control_mesh(n, length):
 		for x in range(0, n):
 			xpos = x * distance
 			ypos = y * distance
-			zpos = numpy.random.random_sample() * 0.5
+			if (x == 0) or (y == 0) or (x == n - 1) or (y == n - 1):
+				zpos = 0
+			else:
+				zpos = numpy.random.random_sample() * 3 - 1.5
 			vertex = (xpos, ypos, zpos)
 			vertices.append(vertex)
 	
@@ -139,7 +115,7 @@ def line_intersect(A, n, p1, p2, e):
 	return False
 	
 def subdivisions(n, s):
-	return 1
+	return (n - 1) * s + n
 	
 def DDM_Practical3(context):
 	
@@ -150,8 +126,7 @@ def DDM_Practical3(context):
 	A = control_mesh(n, length)
 	B = De_Casteljau(A, n, s)
 	
-	# TODO: Calculate the new size of the subdivided surface
-	n_B = subdivisions(1, s)
+	n_B = subdivisions(n, s)
 	
 	show_mesh(mesh_from_array(B, n_B))
 	#show_mesh(mesh_from_array(A, n))
