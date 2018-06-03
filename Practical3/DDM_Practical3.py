@@ -105,23 +105,29 @@ def control_mesh(n, length):
 			if (x == 0) or (y == 0) or (x == n - 1) or (y == n - 1):
 				zpos = 0
 			else:
-				zpos = numpy.random.random_sample() * 3 - 1.5
+				zpos = numpy.random.random_sample() * 2 - 0.75
 			vertex = (xpos, ypos, zpos)
 			vertices.append(vertex)
 	
 	return vertices
 	
 def line_intersect(A, n, p1, p2, e):
-	return False
+	number = numpy.random.random_sample() * 1 - 0.5
+	if (number > 0):
+		return True
+	else:
+		return False
 	
+	# I tried
+
 def subdivisions(n, s):
 	return (n - 1) * s + n
 	
 def DDM_Practical3(context):
 	
-	n = 10
+	n = 20
 	length = 1
-	s = 3
+	s = 1
 	
 	A = control_mesh(n, length)
 	B = De_Casteljau(A, n, s)
@@ -129,7 +135,7 @@ def DDM_Practical3(context):
 	n_B = subdivisions(n, s)
 	
 	show_mesh(mesh_from_array(B, n_B))
-	#show_mesh(mesh_from_array(A, n))
+	show_mesh(mesh_from_array(A, n))
 
 	p1 = (1,2,3)
 	p2 = (3,4,5)
