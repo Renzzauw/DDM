@@ -42,7 +42,7 @@ def De_Casteljau(A, n, s):
 	numberOfPoints = (n - 1) * s + n
 	denominator = numberOfPoints - 1
 
-	# Zet alle punten in A om in lijsten van punten in y-richting met grootte n
+	# Convert all points in A to lists of points in y-direction with size n
 	lijstenInYRichting = []
 	for x in range(0,n):
 		lijst = []
@@ -52,14 +52,14 @@ def De_Casteljau(A, n, s):
 
 	pointsAfterYSubDiv = []
 
-	# Ga voor iedere lijst in y-richting subdividen
+	# Subdivide for each list in y-direction
 	for i in lijstenInYRichting:
 		lijst = i
 		for t in range(0, numberOfPoints):
 			point = CasteljauStep(lijst, t/denominator)
 			pointsAfterYSubDiv.append(point)
 
-	# Zet alle punten in A om in lijsten van punten in x-richting met grootte n
+	# Convert all points in A to lists of points in x-direction with size n
 	lijstenInXRichting = []
 	for x in range(0, numberOfPoints):
 		lijst = []
@@ -69,7 +69,7 @@ def De_Casteljau(A, n, s):
 
 	pointsAfterXSubDiv = []
 
-	# Ga voor iedere lijst in x-richting subdividen
+	# Subdivide for each list in x-direction
 	for i in lijstenInXRichting:
 		lijst = i
 		for t in range(0, numberOfPoints):
@@ -78,7 +78,7 @@ def De_Casteljau(A, n, s):
 
 	return pointsAfterXSubDiv
 	
-# Voer De Casteljau uit op een gegeven breuk en return het bijbehorende punt
+# Execute De Casteljau for a given fractal and return the corresponding point
 def CasteljauStep(C, t):
 	points = C
 	while len(points) > 1:
@@ -110,15 +110,35 @@ def control_mesh(n, length):
 			vertices.append(vertex)
 	
 	return vertices
+
+def certainInter(A, n, p1, p2, e):
+	# If the line is higher then the mesh at one of the points it crosses an axes,
+	# and lower at the other point it does, it is certain that there is an intersection
+	vertices = mesh_from_array(A, n)
+	return False
+
+def certainMiss(A, n, p1, p2, e):
+	# Perform De Casteljau for all y-directions in A. Check if the line doesn't cross.
+	# Perform De Casteljau for all x-directions in A. Check if the line doesn't cross.
+	# If both don't cross, it is certain that there is no intersection.
+	"nothing yet"
+	return False
+
+def dividePoints(A, n, p1, p2, e):
+	# Subdivide A into four groups containing exactly as many points as A does, not unlike done in De_Casteljau().
+	"nothing yet"
+	return []
 	
 def line_intersect(A, n, p1, p2, e):
-	number = numpy.random.random_sample() * 1 - 0.5
-	if (number > 0):
+	# Check if it is certain that the line either does intersect or doesn't, otherwise subdivide and recursively check for the new surfaces.
+	if certainInter(A, n, p1, p2, e):
 		return True
-	else:
+	elif certainMiss(A, n, p1, p2, e):
 		return False
-	
-	# I tried
+	else:
+		newMaps = dividePoints(A, n, p1, p2, e)
+		for M in newMaps:
+			line_intersect(M, n, p1, p2, e)
 
 def subdivisions(n, s):
 	return (n - 1) * s + n
