@@ -184,9 +184,17 @@ class Mesh():
 	# Returns whether the edge has two adjacent faces
 	def is_boundary_edge(self, edge_index):
 		
-		# TODO: implement yourself
+		# TODO: implement yourself ***DONE***
 		
-		return False
+		# Get the flaps of the edge at the given edge index
+		flaps = self.get_flaps(edge_index)
+		# Check the amount of faces:
+		# 1 			>> boundary edge found, boundary edge has only 1 face	>> True
+		# Anything else >> not a boundary edge									>> False
+		if len(flaps) == 1:
+			return True
+		else:
+			return False
 	
 	# Returns the boundary of the mesh by returning the indices of the edges (from the internal edge list) that lie around the boundary.
 	def boundary_edges(self):
