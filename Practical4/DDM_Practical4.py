@@ -64,10 +64,6 @@ class Mesh():
 			if tuple3 not in result or tuple3mirror not in result:
 				result.append(tuple3)	
 
-
-
-		print("Build_edge_list: ", result)
-
 		self.edges = result
 	
 	# ACCESSORS
@@ -218,22 +214,28 @@ class Mesh():
 # This function is called when the DDM operator is selected in Blender.
 def DDM_Practical4(context):
 	
-	# TODO: remove example code and implement Practical 4
+	# TODO: remove example code and implement Practical 4 ***Work-In-Progress*
 	
-	mesh = get_mesh()
+	# Construct a Mesh class instance from the active object
+	M = get_mesh()
+	
+	A = ddm.Sparse_Matrix(M.get_edges(), )
 
 
+	###################################################################
+	# EVERYTHING COMMENTED BELOW HAS BEEN IMPLEMENTED ABOVE THIS LINE #
+	###################################################################
 
 	# Example mesh construction
 	
 	# The vertices are stored as a list of vectors (ordered by index)
-	vertices = [Vector( (0,0,0) ), Vector( (0,1,0) ), Vector( (1,1,0) ), Vector( (1,0,0) )]
+	#vertices = [Vector( (0,0,0) ), Vector( (0,1,0) ), Vector( (1,1,0) ), Vector( (1,0,0) )]
 	
 	# The faces are stored as triplets (triangles) of vertex indices, polygons need to be triangulated as in previous practicals. This time edges should also be extracted.
-	faces = [ (0, 1, 2), (0, 3, 4) ]
+	#faces = [ (0, 1, 2), (0, 3, 4) ]
 	
 	# Construct a mesh with this data
-	M = Mesh(vertices, faces)
+	#M = Mesh(vertices, faces)
 	
 	# You can now use the accessors to access the mesh data
 	#print(M.get_edges())
