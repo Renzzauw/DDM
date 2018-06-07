@@ -176,7 +176,7 @@ class Mesh():
 		xdist = v1[0] - v2[0]
 		ydist = v1[1] - v2[1]
 		zdist = v1[2] - v2[2]
-
+		# square root (x-distance squared + y-distance squared + z-distance squared)
 		result = (xdist**2 + ydist**2 + zdist**2)**(.5)
 
 		return result
@@ -199,9 +199,18 @@ class Mesh():
 	# Returns the boundary of the mesh by returning the indices of the edges (from the internal edge list) that lie around the boundary.
 	def boundary_edges(self):
 		
-		# TODO: implement yourself
-		
-		return False
+		# TODO: implement yourself ***DONE***
+
+		# Get all the edges
+		edges = self.get_edges()
+
+		# Get the flaps with length 1 (aka the boundary edges)
+		result = []
+		for index in range(0, len(edges)):
+			if self.is_boundary_edge(self.get_flaps(index)):
+				result.append(index)
+
+		return result #False
 		
 	# Place any other accessors you need here
 	
