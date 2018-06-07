@@ -165,9 +165,21 @@ class Mesh():
 	# Returns the length of the given edge with edge_index
 	def get_edge_length(self, edge_index):
 		
-		# TODO: implement yourself
-		
-		return 0
+		# TODO: implement yourself ***DONE***
+
+		# Get the edge from the given index
+		edge = self.get_edge(edge_index)
+		# Get the vertex positions
+		v1 = self.get_vertex(edge[0])
+		v2 = self.get_vertex(edge[1])
+		# Calculate the length of the edge with the edge distances
+		xdist = v1[0] - v2[0]
+		ydist = v1[1] - v2[1]
+		zdist = v1[2] - v2[2]
+
+		result = (xdist**2 + ydist**2 + zdist**2)**(.5)
+
+		return result
 		
 	# Returns whether the edge has two adjacent faces
 	def is_boundary_edge(self, edge_index):
