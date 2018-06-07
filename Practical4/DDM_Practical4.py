@@ -38,7 +38,36 @@ class Mesh():
 	
 		# TODO: implement yourself
 
-		self.edges = [ (0, 1), (1, 2) ]
+		# Get the faces
+		faces = self.get_faces()
+
+		result = []
+
+		for face in faces:
+			# Get each vertex of a face
+			v1 = face[0]
+			v2 = face[1]
+			v3 = face[2]
+			# Get all the edges of a face (including mirrored edges)
+			tuple1 = (v1, v2)
+			tuple2 = (v2, v3)
+			tuple3 = (v3, v1)
+			tuple1mirror = (v2, v1)
+			tuple2mirror = (v3, v2)
+			tuple3mirror = (v1, v3)
+			# Add the edges to the list
+			if tuple1 not in result or tuple1mirror not in result:
+				result.append(tuple1)
+			if tuple2 not in result or tuple2mirror not in result:
+				result.append(tuple2)
+			if tuple3 not in result or tuple3mirror not in result:
+				result.append(tuple3)	
+
+
+
+		print("Build_edge_list: ", result)
+
+		self.edges = result #[ (0, 1), (1, 2) ]
 	
 	# ACCESSORS
 	
