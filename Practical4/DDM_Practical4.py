@@ -106,14 +106,14 @@ class Mesh():
 		
 		# Get the list of all edges in the Mesh
 		edges = self.get_edges()
-		# Get each edge from the given face
+		# Get each edge from the given face (including mirrored identical edges)
 		edge1 = (face[0], face[1])
 		edge2 = (face[1], face[2])
 		edge3 = (face[2], face[0])
 		edge1mirror = (face[1], face[0])
 		edge2mirror = (face[2], face[1])
 		edge3mirror = (face[0], face[2])
-
+		# Create a list for the end result
 		result = []
 		# Get edge indices
 		if edge1 in edges:
@@ -138,11 +138,29 @@ class Mesh():
 	# Returns the flap of the given edge belonging to edge_index, that is two faces connected to the edge 1 for a boundary edge, 2 for internal edges
 	def get_flaps(self, edge_index):
 	
-		# TODO: implement yourself
+		# TODO: implement yourself ***DONE***
 	
 		# Watch out: edges might be on the boundary
-	
-		return [ (0, 1, 2), (0, 3, 4) ]
+
+		# Get all the faces
+		faces = self.get_faces()
+		# Get the edge from the given edge index
+		edge = self.get_edge(edge_index)
+		# Create a list to return
+		result = []
+		# Get the edges from each face
+		for face in faces:
+			edge1 = (face[0], face[1])
+			edge2 = (face[1], face[2])
+			edge3 = (face[2], face[0])
+			edge1mirror = (face[1], face[0])
+			edge2mirror = (face[2], face[1])
+			edge3mirror = (face[0], face[2])
+			# Check if the edge exists in the list of faces (check each edge and its identical mirror for each face)
+			if edge == edge1 or edge == edge2 or edge == edge3 or edge == edge1mirror or edge == edge2mirror or edge == edge3mirror:
+				result.append(face)
+
+		return result 
 		
 	# Returns the length of the given edge with edge_index
 	def get_edge_length(self, edge_index):
