@@ -32,8 +32,6 @@ def mesh_from_array(A, n):
 			vertices.append(t1)
 			vertices.append(t2)
 
-
-
 	return vertices
 	
 def De_Casteljau(A, n, s):
@@ -42,45 +40,55 @@ def De_Casteljau(A, n, s):
 		return A
 
 	numberOfPoints = (n - 1) * s + n
+	denominator = numberOfPoints - 1
 
-	segmentSize = (1/(n-1))/(s+1)
-
-	points = []
-
-	for i in range(1, numberOfPoints - 1):
-		point = i * segmentSize
-		points.append(point)
-
-	segmentList = []
+	# Convert all points in A to lists of points in y-direction with size n
+	lijstenInYRichting = []
 	for x in range(0,n):
 		lijst = []
 		for y in range(0,n):
-			lijst.append(A[x+n*y])
-		segmentList.append(lijst)	
-		
-	puntenLijst = []
-	for i in n:
-		puntenLijst.append(A[i])
+			lijst.append(A[y*n+x])	
+		lijstenInYRichting.append(lijst)	
+
+	pointsAfterYSubDiv = []
+
+	# Subdivide for each list in y-direction
+	for i in lijstenInYRichting:
+		lijst = i
+		for t in range(0, numberOfPoints):
+			point = CasteljauStep(lijst, t/denominator)
+			pointsAfterYSubDiv.append(point)
+
+	# Convert all points in A to lists of points in x-direction with size n
+	lijstenInXRichting = []
+	for x in range(0, numberOfPoints):
+		lijst = []
+		for y in range(0, n):
+			lijst.append(pointsAfterYSubDiv[y*numberOfPoints+x])
+		lijstenInXRichting.append(lijst)	
+
+	pointsAfterXSubDiv = []
+
+	# Subdivide for each list in x-direction
+	for i in lijstenInXRichting:
+		lijst = i
+		for t in range(0, numberOfPoints):
+			point = CasteljauStep(lijst, t/denominator)
+			pointsAfterXSubDiv.append(point)
+
+	return pointsAfterXSubDiv
 	
-	for t in range(0, len(points)):
-		for i in segmentList:
-			p = F(i)
-			puntenLijst.append(p)
+# Execute De Casteljau for a given fractal and return the corresponding point
+def CasteljauStep(C, t):
+	points = C
+	while len(points) > 1:
+		newPoints = []
+		for i in range(0, len(points)-1):
+			pos = ((points[i][0] + t * (points[i+1][0]-points[i][0])), (points[i][1] + t * (points[i+1][1]-points[i][1])), (points[i][2] + t * (points[i+1][2]-points[i][2])))
+			newPoints.append(pos)
+		points = newPoints
 
-	for i in range(len(A)-n, len(A)):
-		puntenLijst.append(A[i])
-
-	
-
-	return []
-
-def F(C, t):
-	while len(C) > 1:
-		C = CasteljauStep(C, t)
-
-	return C[0]
-
-def CasteljauStep():
+	return points[0]
 
 
 def control_mesh(n, length):
@@ -94,37 +102,66 @@ def control_mesh(n, length):
 		for x in range(0, n):
 			xpos = x * distance
 			ypos = y * distance
-			zpos = numpy.random.random_sample() * 0.5
+			if (x == 0) or (y == 0) or (x == n - 1) or (y == n - 1):
+				zpos = 0
+			else:
+				zpos = numpy.random.random_sample() * 2 - 0.75
 			vertex = (xpos, ypos, zpos)
 			vertices.append(vertex)
 	
 	return vertices
+
+def certainInter(A, n, p1, p2, e):
+	# If the line is higher then the mesh at one of the points it crosses an axes,
+	# and lower at the other point it does, it is certain that there is an intersection
+	vertices = mesh_from_array(A, n)
+	return False
+
+def certainMiss(A, n, p1, p2, e):
+	# Perform De Casteljau for all y-directions in A. Check if the line doesn't cross.
+	# Perform De Casteljau for all x-directions in A. Check if the line doesn't cross.
+	# If both don't cross, it is certain that there is no intersection.
+	"nothing yet"
+	return False
+
+def dividePoints(A, n, p1, p2, e):
+	# Subdivide A into four groups containing exactly as many points as A does, not unlike done in De_Casteljau().
+	"nothing yet"
+	return []
 	
 def line_intersect(A, n, p1, p2, e):
-	return False
-	
+	# Check if it is certain that the line either does intersect or doesn't, otherwise subdivide and recursively check for the new surfaces.
+	if certainInter(A, n, p1, p2, e):
+		return True
+	elif certainMiss(A, n, p1, p2, e):
+		return False
+	else:
+		newMaps = dividePoints(A, n, p1, p2, e)
+		for M in newMaps:
+			line_intersect(M, n, p1, p2, e)
+
 def subdivisions(n, s):
-	return 1
+	return (n - 1) * s + n
 	
 def DDM_Practical3(context):
 	
-	n = 10
+	n = 20
 	length = 1
-	s = 3
+	s = 1
 	
 	A = control_mesh(n, length)
 	B = De_Casteljau(A, n, s)
 	
-	# TODO: Calculate the new size of the subdivided surface
-	n_B = subdivisions(1, s)
+	n_B = subdivisions(n, s)
 	
 	show_mesh(mesh_from_array(B, n_B))
-	#show_mesh(mesh_from_array(A, n))
+	show_mesh(mesh_from_array(A, n))
 
 	p1 = (1,2,3)
 	p2 = (3,4,5)
 	
 	print(line_intersect(A, n, p1, p2, 0.01))
+	
 	
 # Builds a mesh using a list of triangles
 # This function is the same as the previous practical
