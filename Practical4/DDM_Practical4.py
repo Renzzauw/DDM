@@ -11,6 +11,7 @@ import ddm
 from mathutils import Vector
 
 # Place additional imports here
+import bpy
 
 class Mesh():
 
@@ -219,6 +220,10 @@ def DDM_Practical4(context):
 	
 	# TODO: remove example code and implement Practical 4
 	
+	meshje = get_mesh()
+
+
+
 	# Example mesh construction
 	
 	# The vertices are stored as a list of vectors (ordered by index)
@@ -327,7 +332,19 @@ def get_mesh():
 
 	# TODO: implement yourself
 
-	return Mesh([], [])
+	# Get all vertices/triangles
+	#triangles = get_vertices()
+	
+	# Get the active object from the scene
+	active_obj = bpy.context.active_object
+	# Get its vertices
+	vertices = active_obj.data.vertices[0]
+	# Get its faces
+	faces = active_obj.data.faces
+
+	print("Vertices Active Mesh: ", vertices)
+	print("Faces Active Mesh: ", faces)
+	return Mesh(vertices, faces)
 	
 # Given a Mesh class M, create a new object with name in the scene with the data from M
 def show_mesh(M, name):
