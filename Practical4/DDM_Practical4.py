@@ -68,7 +68,7 @@ class Mesh():
 
 		print("Build_edge_list: ", result)
 
-		self.edges = result #[ (0, 1), (1, 2) ]
+		self.edges = result
 	
 	# ACCESSORS
 	
@@ -211,7 +211,7 @@ class Mesh():
 			if self.is_boundary_edge(self.get_flaps(index)):
 				result.append(index)
 
-		return result #False
+		return result
 		
 	# Place any other accessors you need here
 	
@@ -220,7 +220,7 @@ def DDM_Practical4(context):
 	
 	# TODO: remove example code and implement Practical 4
 	
-	meshje = get_mesh()
+	mesh = get_mesh()
 
 
 
@@ -330,25 +330,37 @@ def LSCM(M):
 # in essence this function extracts data from the scene and returns it as a (simpler) Mesh class, triangulated where nessecary.
 def get_mesh():
 
-	# TODO: implement yourself
-
-	# Get all vertices/triangles
-	#triangles = get_vertices()
+	# TODO: implement yourself ***DONE***
 	
 	# Get the active object from the scene
 	active_obj = bpy.context.active_object
 	# Get its vertices
-	vertices = active_obj.data.vertices[0]
+	vertices = []
+	for i in range(0, len(active_obj.data.vertices)):
+		vertices.append(active_obj.data.vertices[i].co)
 	# Get its faces
-	faces = active_obj.data.faces
+	faces = []
+	for face in active_obj.data.polygons:
+		verts = face.vertices[:]
+		faces.append(verts)
 
-	print("Vertices Active Mesh: ", vertices)
-	print("Faces Active Mesh: ", faces)
 	return Mesh(vertices, faces)
 	
 # Given a Mesh class M, create a new object with name in the scene with the data from M
 def show_mesh(M, name):
 	
-	# TODO: implement yourself
+	# TODO: implement yourself ***DONE***
 	
-	pass
+	# Create a mesh and object first
+	mesh = bpy.data.meshes.new("mesh")
+	obj = bpy.data.objects.new(name, mesh)
+	# Link the object to the scene
+	scene = bpy.context.scene
+	scene.objects.link(obj)
+	# Get mesh data
+	vertices = M.get_vertices()
+	faces = M.get_faces()
+	# Add data to the mesh
+	mesh.from_pydata(vertices, [], faces)
+	# Update mesh changes
+	mesh.update()
