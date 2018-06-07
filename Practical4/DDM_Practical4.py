@@ -36,7 +36,7 @@ class Mesh():
 	# All subsequent calls that do something with edges should return their indices. Getting the actual edge can then be done by calling get_edge(index).
 	def build_edge_list(self):
 	
-		# TODO: implement yourself
+		# TODO: implement yourself ***DONE***
 
 		# Get the faces
 		faces = self.get_faces()
@@ -102,9 +102,34 @@ class Mesh():
 	# Looks up the edges belonging to this face in the edge list and returns their INDICES (not value). Make sure that each edge is unique (recall that (1, 0) == (0, 1)). These should match the order of your weights.
 	def get_face_edges(self, face):
 	
-		# TODO: implement yourself
-	
-		return [] 
+		# TODO: implement yourself ***DONE***
+		
+		# Get the list of all edges in the Mesh
+		edges = self.get_edges()
+		# Get each edge from the given face
+		edge1 = (face[0], face[1])
+		edge2 = (face[1], face[2])
+		edge3 = (face[2], face[0])
+		edge1mirror = (face[1], face[0])
+		edge2mirror = (face[2], face[1])
+		edge3mirror = (face[0], face[2])
+
+		result = []
+		# Get edge indices
+		if edge1 in edges:
+			result.append(edges.index(edge1))
+		else:
+			result.append(edges.index(edge1mirror))
+		if edge2 in edges:
+			result.append(edges.index(edge2))
+		else:
+			result.append(edges.index(edge2mirror))
+		if edge3 in edges:
+			result.append(edges.index(edge3))
+		else:
+			result.append(edges.index(edge3mirror))
+		
+		return result 
 	
 	# Returns the vertex coordinates of the vertices of the given edge (a pair of vertex indices e.g. (0,1) ) 
 	def get_edge_vertices(self, edge):
