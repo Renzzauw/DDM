@@ -219,7 +219,8 @@ def DDM_Practical4(context):
 	# Construct a Mesh class instance from the active object
 	M = get_mesh()
 	
-	A = ddm.Sparse_Matrix(M.get_edges(), )
+	# Little test to check if get_mesh and show_mesh work well together
+	show_mesh(M, "Yeet")
 
 
 	###################################################################
