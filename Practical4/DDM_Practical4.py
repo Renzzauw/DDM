@@ -1,4 +1,4 @@
-# File created on: 2018-04-26 14:54:00.776450
+# File created on: 2018-06-07 13:31:55.107728
 #
 # IMPORTANT:
 # ----------
@@ -6,12 +6,14 @@
 # - Delete the old versions of the files in your user folder for practicals you want to update (make a copy of your work!).
 # - For the assignment description and to download the addon, see the course website at: http://www.cs.uu.nl/docs/vakken/ddm/
 # - Mail any bugs and inconsistencies you see to: uuinfoddm@gmail.com
+# - Do not modify any of the signatures provided.
+# - You may add as many functions to the assignment as you see fit but try to avoid global variables.
 
 import ddm
 from mathutils import Vector
+import bpy
 
 # Place additional imports here
-import bpy
 
 class Mesh():
 
@@ -33,7 +35,7 @@ class Mesh():
 	
 	# This function builds an edge list from the faces of the current mesh and stores it internally.
 	# Make sure that each edge is unique. Remember that order does NOT matter, e.g. (1, 0) is the same edge as (0, 1).
-	# The indices of the edges should correspond to the locations of the weights in your weight calculation.
+	# The indices of the edges should correspond to the indices of the weights in your weight calculation (e.g. both lists have the same size).
 	# All subsequent calls that do something with edges should return their indices. Getting the actual edge can then be done by calling get_edge(index).
 	def build_edge_list(self):
 	
@@ -126,7 +128,7 @@ class Mesh():
 		else:
 			result.append(edges.index(edge3mirror))
 		
-		return result 
+		return result
 	
 	# Returns the vertex coordinates of the vertices of the given edge (a pair of vertex indices e.g. (0,1) ) 
 	def get_edge_vertices(self, edge):
@@ -157,7 +159,7 @@ class Mesh():
 			if edge == edge1 or edge == edge2 or edge == edge3 or edge == edge1mirror or edge == edge2mirror or edge == edge3mirror:
 				result.append(face)
 
-		return result 
+		return result
 		
 	# Returns the length of the given edge with edge_index
 	def get_edge_length(self, edge_index):
@@ -188,10 +190,7 @@ class Mesh():
 		# Check the amount of faces:
 		# 1 			>> boundary edge found, boundary edge has only 1 face	>> True
 		# Anything else >> not a boundary edge									>> False
-		if len(flaps) == 1:
-			return True
-		else:
-			return False
+		return len(flaps) == 1
 	
 	# Returns the boundary of the mesh by returning the indices of the edges (from the internal edge list) that lie around the boundary.
 	def boundary_edges(self):
@@ -300,20 +299,19 @@ def slice_triplets(triplets, fixed_colums):
 			
 	return (left_triplets, right_triplets)
 
-# Returns the weights for each edge of mesh M.
-# It therefore consists of a list of real numbers such that the index matches the index of the edge list in M.
+# Returns the weights for each edge of mesh M, e.g. a list of real numbers such that the index matches the index of the edge list in M.
 def cotan_weights(M, r):
 	
 	# TODO: implement yourself
 	
-	pass
+	return [0.1, 0.2, 0.4]
 	
 # Same as above but for uniform weights
 def uniform_weights(M, r):
 
 	# TODO: implement yourself
 
-	pass
+	return [0.1, 0.2, 0.4]
 	
 # Given a set of weights, return M with the uv-coordinates set according to the passed weights
 def Convex_Boundary_Method(M, weights):
@@ -331,6 +329,7 @@ def LSCM(M):
 	
 # Builds a Mesh class object from the active object in the scene.
 # in essence this function extracts data from the scene and returns it as a (simpler) Mesh class, triangulated where nessecary.
+# This function is very similar to the get_vertices function but instead of triangle lists you should build a Mesh class instead.
 def get_mesh():
 
 	# TODO: implement yourself ***DONE***
@@ -354,6 +353,11 @@ def show_mesh(M, name):
 	
 	# TODO: implement yourself ***DONE***
 	
+	# Note that in order to apply UV-coordinates to a mesh, the mesh needs to have at least 1 UV-layer (denoted as UV-map in the Blender interface under "data") with data.
+	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and differs from the use in the assignment itself as it simply means "some polyon in the mesh".
+	# In order to view the UV-coordinates in the Blender interface make sure the renderer is set to "Blender Render", the mesh has a material (Properties -> Material) with a texture map (for example a Checkerboard under Properties -> Texture).
+	# See https://docs.blender.org/api/current/bpy.types.Mesh.html#mesh-data for more details.
+		
 	# Create a mesh and object first
 	mesh = bpy.data.meshes.new("mesh")
 	obj = bpy.data.objects.new(name, mesh)
