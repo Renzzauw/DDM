@@ -301,26 +301,68 @@ def slice_triplets(triplets, fixed_colums):
 	return (left_triplets, right_triplets)
 
 # Returns the weights for each edge of mesh M, e.g. a list of real numbers such that the index matches the index of the edge list in M.
-def cotan_weights(M, r):
+def cotan_weights(M):
 	
-	# TODO: implement yourself
+	# TODO: implement yourself ***DONE***
 
-	return [0.1, 0.2, 0.4]
+	# Get all edges
+	edges = M.get_edges()
+
+	weights = []
+	for edge in range(0, len(edges)):
+		if M.is_boundary_edge(edge):
+			# Skip boundary edges
+			continue
+		else:
+			# Get the flaps
+			edgeFlaps = M.get_flaps(edge)
+			face1 = edgeFlaps[0]
+			face2 = edgeFlaps[1]
+			# Get the edges of both faces excluding the shared edge
+			edges1 = face1.remove(edge)
+			edges2 = face2.remove(edge)
+			# Calculate the angles between these edges
+			# Angle of face 1
+			a = M.get_edge_length(edges1[0])
+			b = M.get_edge_length(edges1[1])
+			sharedEdge = M.get_edge_length(edge)
+			angle1 = math.acos(( a**2 + b**2 - sharedEdge**2) / (2 * a * b))
+			# Angle of face 2
+			c = M.get_edge_length(edges2[0])
+			d = M.get_edge_length(edges2[1])
+			sharedEdge = M.get_edge_length(edge)
+			angle2 = math.acos(( c**2 + d**2 - sharedEdge**2) / (2 * c * d))
+			# Calculate final weight
+			weigth = (math.atan(angle1) + math.atan(angle2)) / 2
+			weights.append(weigth)
+
+
+	return weights
 	
 # Same as above but for uniform weights
-def uniform_weights(M, r):
+def uniform_weights(M):
 
-	# TODO: implement yourself
+	# TODO: implement yourself ***DONE***
 
-	return [0.1, 0.2, 0.4]
+	# Get all edges
+	edges = M.get_edges()
+	boundaryEdges = M.boundary_edges()
+	# Get the amount of weigths
+	weigthsAmount = edges - boundaryEdges
+	# Create a list of 1s
+	weights = []
+	for i in range(0, weigthsAmount):
+		weights.append(1)
+
+	return weights
 	
 # Given a set of weights, return M with the uv-coordinates set according to the passed weights
-def Convex_Boundary_Method(M, weights):
+def Convex_Boundary_Method(M, weights, r):
 	
 	# TODO: implement yourself
 
 
-	# 1.1.1 formula (1)
+	# /// 1.1.1 formula (1)
 	# Get the boundary edges
 	boundaryEdges = M.boundary_edges() # <<<
 	# Get boundary lengths
@@ -335,7 +377,7 @@ def Convex_Boundary_Method(M, weights):
 		angle = (2*math.pi*boundaryLengths[i]) / totalBoundaryLength
 		sectorAngles.append(angle)
 
-	# 1.1.1 formula (2) ***klopt niet***
+	# /// 1.1.1 formula (2)
 	# Calculate UV positions on the circle
 	uvPositions = []
 	angleSum = 0
@@ -345,8 +387,17 @@ def Convex_Boundary_Method(M, weights):
 		uv = r * (math.cos(sectorAngles[angleSum]), math.sin(sectorAngles[angleSum]))
 		uvPositions.append(uv)
 
-	# 1.1.2
+	# /// 1.1.2 calculate the weigths
+	# Calculate cotan weigths
+
 	
+
+
+
+	# Calculate uniform weights
+
+
+
 
 	return M
 
