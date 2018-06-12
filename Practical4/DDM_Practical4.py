@@ -14,6 +14,7 @@ from mathutils import Vector
 import bpy
 
 # Place additional imports here
+import math
 
 class Mesh():
 
@@ -221,7 +222,7 @@ def DDM_Practical4(context):
 	# Little test to check if get_mesh and show_mesh work well together
 	show_mesh(M, "Yeet")
 
-
+	
 	###################################################################
 	# EVERYTHING COMMENTED BELOW HAS BEEN IMPLEMENTED ABOVE THIS LINE #
 	###################################################################
@@ -303,7 +304,7 @@ def slice_triplets(triplets, fixed_colums):
 def cotan_weights(M, r):
 	
 	# TODO: implement yourself
-	
+
 	return [0.1, 0.2, 0.4]
 	
 # Same as above but for uniform weights
@@ -317,7 +318,36 @@ def uniform_weights(M, r):
 def Convex_Boundary_Method(M, weights):
 	
 	# TODO: implement yourself
+
+
+	# 1.1.1 formula (1)
+	# Get the boundary edges
+	boundaryEdges = M.boundary_edges() # <<<
+	# Get boundary lengths
+	boundaryLengths = []
+	for b in boundaryEdges:
+		boundaryLengths.append(M.get_edge_length(b))
+	# Get total length of the boundary
+	totalBoundaryLength = sum(boundaryLengths)
+	# Calculate sector angles
+	sectorAngles = []
+	for i in range(0, len(boundaryLengths)):
+		angle = (2*math.pi*boundaryLengths[i]) / totalBoundaryLength
+		sectorAngles.append(angle)
+
+	# 1.1.1 formula (2) ***klopt niet***
+	# Calculate UV positions on the circle
+	uvPositions = []
+	angleSum = 0
+	uvPositions.append(r, 0)
+	for i in range(2, len(sectorAngles) + 1):
+		angleSum = angleSum + sectorAngles[i]
+		uv = r * (math.cos(sectorAngles[angleSum]), math.sin(sectorAngles[angleSum]))
+		uvPositions.append(uv)
+
+	# 1.1.2
 	
+
 	return M
 
 # Using Least Squares Conformal Mapping, calculate the uv-coordinates of a given mesh M and return M with those uv-coordinates applied
@@ -352,6 +382,7 @@ def get_mesh():
 def show_mesh(M, name):
 	
 	# TODO: implement yourself ***DONE***
+	# TODO: UV implementeren VVV
 	
 	# Note that in order to apply UV-coordinates to a mesh, the mesh needs to have at least 1 UV-layer (denoted as UV-map in the Blender interface under "data") with data.
 	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and differs from the use in the assignment itself as it simply means "some polyon in the mesh".
