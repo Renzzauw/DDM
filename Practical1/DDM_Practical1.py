@@ -43,7 +43,7 @@ def DDM_Practical1(context):
 def show_mesh(triangles):
 	# Create a mesh and object first
 	mesh = bpy.data.meshes.new("mesh")
-	obj = bpy.data.objects.new(bpy.context.scene.objects.active.name + " (copy)", mesh)
+	obj = bpy.data.objects.new("(copy)", mesh)
 	# Link the object to the scene
 	scene = bpy.context.scene
 	scene.objects.link(obj)
