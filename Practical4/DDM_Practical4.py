@@ -361,10 +361,10 @@ def Convex_Boundary_Method(M, weights, r):
 	
 	# TODO: implement yourself
 
-
 	# /// 1.1.1 formula (1)
+
 	# Get the boundary edges
-	boundaryEdges = M.boundary_edges() # <<<
+	boundaryEdges = M.boundary_edges()
 	# Get boundary lengths
 	boundaryLengths = []
 	for b in boundaryEdges:
@@ -378,6 +378,7 @@ def Convex_Boundary_Method(M, weights, r):
 		sectorAngles.append(angle)
 
 	# /// 1.1.1 formula (2)
+
 	# Calculate UV positions on the circle
 	uvPositions = []
 	angleSum = 0
@@ -387,14 +388,25 @@ def Convex_Boundary_Method(M, weights, r):
 		uv = r * (math.cos(sectorAngles[angleSum]), math.sin(sectorAngles[angleSum]))
 		uvPositions.append(uv)
 
-	# /// 1.1.2 calculate the weigths
-	# Calculate cotan weigths
+	# /// 1.1.2 [weights calculated in formulas above]
 
-	
+	# /// 1.1.3 Laplacian System
+
+	# Get all the vertices (||V||)
+	V = M.get_vertices()
+	# Get all the inner edges (||E_i||)
+	edges = M.get_edges()
+	E_i = []
+	for edge in range(0, len(edges)):
+		if M.is_boundary_edge(edge):
+			# Skip boundary edges
+			continue
+		else:
+			E_i.append(edge)
 
 
+	matrix = ddm.Sparse_Matrix([(0, 0, 4), (1, 0, 12), (2, 0, -16), (0, 1, 12), (1, 1, 37), (2, 1, -43), (0, 2, -16), (1, 2, -43), (2, 2, 98)], 3, 3)
 
-	# Calculate uniform weights
 
 
 
