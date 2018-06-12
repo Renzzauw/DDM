@@ -405,10 +405,14 @@ def Convex_Boundary_Method(M, weights, r):
 			E_i.append(edge)
 
 
-	matrix = ddm.Sparse_Matrix([(0, 0, 4), (1, 0, 12), (2, 0, -16), (0, 1, 12), (1, 1, 37), (2, 1, -43), (0, 2, -16), (1, 2, -43), (2, 2, 98)], 3, 3)
+	# Create the tuples of the positions the of 1s and -1s 
+	tuplesList = []
+	for i in range(0, len(E_i)):
+		tuplesList.append((i, M.get_edge(i)[0] , 1))
+		tuplesList.append((i, M.get_edge(i)[1] , -1))
 
-
-
+	# Create the d0 operator a.k.a. the sparse matrix of size ||E_i|| x ||V||
+	d0 = ddm.Sparse_Matrix(tuplesList, len(E_i), len(V))
 
 
 	return M
