@@ -405,6 +405,8 @@ def Convex_Boundary_Method(M, weights, r):
 			E_i.append(edge)
 
 
+	# /// 1.1.3 formula (3)
+
 	# Create the tuples of the positions the of 1s and -1s 
 	tuplesList = []
 	for i in range(0, len(E_i)):
@@ -414,6 +416,25 @@ def Convex_Boundary_Method(M, weights, r):
 	# Create the d0 operator a.k.a. the sparse matrix of size ||E_i|| x ||V||
 	d0 = ddm.Sparse_Matrix(tuplesList, len(E_i), len(V))
 
+	# /// 1.1.3 formula (4 staat deze op juiste plek????? Ik gok dat deze naar de main PRACTICAL 4  functie moet ofzo)
+
+	# W = ???
+	# u = lijst van u-coords. ???
+	# v = lijst van v-coords. ???
+	# d0 hebben we al
+	# met al deze dingen hierboven kunnen we de energy E op punt (u, v) berekenen met formule 4:
+	# E = u.transposed() * d0.transposed() * W * d0 * u + v.transposed() * d0.transposed() * W * d0 * v
+
+	# /// 1.1.3 formula (5)
+
+	# Seperate d0 into 2 matrices 
+	# sliced_d0 = slice_triplets(???, d0)
+	# d0_b = sliced_d0[0] (of moeten hier indexen andersom zijn?)
+	# d0_i = sliced_d0[1]
+	# ?????????????
+	
+
+	
 
 	return M
 
