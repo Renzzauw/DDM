@@ -219,9 +219,16 @@ def DDM_Practical4(context):
 	# Construct a Mesh class instance from the active object
 	M = get_mesh()
 	
-	# Little test to check if get_mesh and show_mesh work well together
-	show_mesh(M, "Yeet")
+	# TODO: checken of r hier klopt
 
+	# TODO: show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
+	show_mesh(Convex_Boundary_Method(M, uniform_weights(M), 1), "Uniform")
+	
+	# TODO: show_mesh on a copy of the active mesh with cot UV coordinates, call this mesh "Cot"
+	show_mesh(Convex_Boundary_Method(M, cotan_weights(M), 1), "Cot")
+
+	# TODO: show_mesh on a copy of the active mesh with boundary free UV coordinates, call this mesh "LSCM"
+	show_mesh(LSCM(M), "LSCM")
 	
 	###################################################################
 	# EVERYTHING COMMENTED BELOW HAS BEEN IMPLEMENTED ABOVE THIS LINE #
@@ -261,14 +268,6 @@ def DDM_Practical4(context):
 	# You can drop the matrix back to a python representation using 'flatten'
 	print(B.flatten())
 	
-	# TODO: show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
-	show_mesh(Convex_Boundary_Method(M, uniform_weights(M), r), "Uniform")
-	
-	# TODO: show_mesh on a copy of the active mesh with cot UV coordinates, call this mesh "Cot"
-	show_mesh(Convex_Boundary_Method(M, cotan_weights(M), r), "Cot")
-
-	# TODO: show_mesh on a copy of the active mesh with boundary free UV coordinates, call this mesh "LSCM"
-	show_mesh(LSCM(M), "LSCM")
 
 # You may place extra functions here
 
@@ -338,7 +337,6 @@ def cotan_weights(M):
 			weigth = (math.atan(angle1) + math.atan(angle2)) / 2
 			weights.append(weigth)
 
-
 	return weights
 	
 # Same as above but for uniform weights
@@ -397,8 +395,8 @@ def Convex_Boundary_Method(M, weights, r):
 	# Get all the vertices (||V||)
 	V = M.get_vertices()
 	# Get all the inner edges (||E_i||)
-	"""edges = M.get_edges()
-	E_i = []
+	edges = M.get_edges()
+	"""E_i = []
 	for edge in range(0, len(edges)):
 		if M.is_boundary_edge(edge):
 			# Skip boundary edges
@@ -445,14 +443,19 @@ def Convex_Boundary_Method(M, weights, r):
 	# Seperate d0 into 2 matrices 
 	sliced_d0 = slice_triplets(tuplesList, innerVerts)
 	d0_Ilist, d0_Blist = sliced_d0
-	d0_I = ddm.Sparse_Matrix()
+	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(innerVerts))
+	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(V) - len(innerVerts))
 	
-	wowmooi = ((-d0_I.transposed()) * W * d0_B) * u_B
+	u_B = Vector([u for (u,v) in uvPositions])
+	v_B = Vector([v for (u,v) in uvPositions])
+
+	rhs_u = ((-d0_I.transposed()) * W * d0_B) * u_B
+	rhs_v = ((-d0_I.transposed()) * W * d0_B) * v_B
 	
 	return M
 
 # Using Least Squares Conformal Mapping, calculate the uv-coordinates of a given mesh M and return M with those uv-coordinates applied
-def LSCM(M):
+def LSCM(M): 
 
 	# TODO: implement yourself
 
