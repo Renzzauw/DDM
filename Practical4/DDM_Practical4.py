@@ -253,7 +253,7 @@ def DDM_Practical4(context):
 	# Solving a system with a certain rhs given as a list
 	rhs = [2, 2, 2]
 	
-	x = B.solve(rhs);
+	x = B.solve(rhs)
 	
 	# A solution should yield the rhs when multiplied with B, ( B * x - v should be zero)
 	print(Vector( B * x ) - Vector(rhs) )
@@ -262,11 +262,13 @@ def DDM_Practical4(context):
 	print(B.flatten())
 	
 	# TODO: show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
+	show_mesh(Convex_Boundary_Method(M, uniform_weights(M), r), "Uniform")
 	
 	# TODO: show_mesh on a copy of the active mesh with cot UV coordinates, call this mesh "Cot"
-	
+	show_mesh(Convex_Boundary_Method(M, cotan_weights(M), r), "Cot")
+
 	# TODO: show_mesh on a copy of the active mesh with boundary free UV coordinates, call this mesh "LSCM"
-	
+	show_mesh(LSCM(M), "LSCM")
 
 # You may place extra functions here
 
@@ -442,9 +444,10 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# Seperate d0 into 2 matrices 
 	sliced_d0 = slice_triplets(tuplesList, innerVerts)
-	d0_I, d0_B = sliced_d0
-
-	(-d0_I.transposed()) * W * d0_B) * u_B
+	d0_Ilist, d0_Blist = sliced_d0
+	d0_I = ddm.Sparse_Matrix()
+	
+	wowmooi = ((-d0_I.transposed()) * W * d0_B) * u_B
 	
 	return M
 
