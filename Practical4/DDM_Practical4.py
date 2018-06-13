@@ -420,7 +420,7 @@ def Convex_Boundary_Method(M, weights, r):
 		for i in range(0, 2):
 			if boundEdge[i] not in boundVerts:
 				boundVerts.append(boundEdge[i])
-	print("boundaryEdges =", boundaryEdges, "boundEdgeCoords =", boundEdgeCoords)
+
 	# Get all inner vertices
 	innerVerts = []
 	for inEdge in E_i:
@@ -464,9 +464,6 @@ def Convex_Boundary_Method(M, weights, r):
 	copyTuplesList = [(x, y, -z) for (x, y, z) in d0_Ilist]
 	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(innerVerts))
 
-	print("Inner Edges: ",len(E_i))
-	print("W size: ", weightsCount)
-
 	# Right hand sides of formula (5) minus U or V
 	transposenegd0_I = negd0_I.transposed()
 	rhs = transposenegd0_I * W
@@ -487,8 +484,6 @@ def Convex_Boundary_Method(M, weights, r):
 	# Link inner vertices to UV coordinates
 	UV_in = {}
 	uvCount = 0
-	print("boundVerts = ", boundVerts)
-	print("V size = ", len(V), ", UV_i size = ", len(UV_i), ", inner V size = ", len([x for x in V if x not in boundVerts]))
 	for vert in range(0, len(V)):
 		if vert not in boundVerts:
 			UV_in[vert] = UV_i[uvCount]
@@ -501,10 +496,16 @@ def Convex_Boundary_Method(M, weights, r):
 		print("edge ", uvCount, ": ", edges[walkEdge])
 		nextCoord = edges[walkEdge][1]
 		UV_bound[nextCoord] = UV_b[uvCount]
-		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if v == nextCoord][0])
+		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if u == nextCoord][0])
 		uvCount = uvCount + 1
 
-	#M.uv_coordinates[???] = ???
+	print(UV_in.keys())
+	print(UV_bound.keys())
+	for i in range(0, len(V)):
+		if i in boundVerts:
+			M.uv_coordinates[i] = UV_bound[i]
+		else:
+			M.uv_coordinates[i] = UV_in[i]
 
 	return M
 
