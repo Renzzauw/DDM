@@ -61,11 +61,11 @@ class Mesh():
 			tuple2mirror = (v3, v2)
 			tuple3mirror = (v1, v3)
 			# Add the edges to the list
-			if tuple1 not in result or tuple1mirror not in result:
+			if tuple1 not in result and tuple1mirror not in result:
 				result.append(tuple1)
-			if tuple2 not in result or tuple2mirror not in result:
+			if tuple2 not in result and tuple2mirror not in result:
 				result.append(tuple2)
-			if tuple3 not in result or tuple3mirror not in result:
+			if tuple3 not in result and tuple3mirror not in result:
 				result.append(tuple3)	
 
 		self.edges = result
@@ -221,8 +221,6 @@ def DDM_Practical4(context):
 	
 	# Construct a Mesh class instance from the active object
 	M = get_mesh()
-	
-	# TODO: checken of r hier klopt
 
 	# TODO: show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
 	show_mesh(Convex_Boundary_Method(M, uniform_weights(M), 1), "Uniform")
@@ -320,11 +318,11 @@ def cotan_weights(M):
 		else:
 			# Get the flaps
 			edgeFlaps = M.get_flaps(edge)
-			face1 = edgeFlaps[0]
-			face2 = edgeFlaps[1]
+			edges1 = M.get_face_edges(edgeFlaps[0])
+			edges2 = M.get_face_edges(edgeFlaps[1])
 			# Get the edges of both faces excluding the shared edge
-			edges1 = face1.remove(edge)
-			edges2 = face2.remove(edge)
+			edges1.remove(edge)
+			edges2.remove(edge)
 			# Calculate the angles between these edges
 			# Angle of face 1
 			a = M.get_edge_length(edges1[0])
@@ -351,11 +349,10 @@ def uniform_weights(M):
 	edges = M.get_edges()
 	boundaryEdges = M.boundary_edges()
 	# Get the amount of weigths
-	#weigthsAmount = edges - boundaryEdges
-	weigthsAmount = [x for x in edges if x not in boundaryEdges]
+	weigthsAmount = len(edges) - len(boundaryEdges)
 	# Create a list of 1s
 	weights = []
-	for i in range(0, len(weigthsAmount)):
+	for i in range(0, weigthsAmount):
 		weights.append(1)
 
 	return weights
@@ -387,7 +384,7 @@ def Convex_Boundary_Method(M, weights, r):
 	uvPositions = []
 	angleSum = 0
 	uvPositions.append((r, 0))
-	for i in range(2, len(sectorAngles)): #+ 1):
+	for i in range(1, len(sectorAngles)): #+ 1):
 		# TODO: not sure of deze comment wel gucci is 
 		angleSum = angleSum + sectorAngles[i]
 		uv = r * (math.cos(angleSum), math.sin(angleSum))
@@ -399,23 +396,31 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# Get all the vertices (||V||)
 	V = M.get_vertices()
-	# Get all the inner edges (||E_i||)
+	# Get all the edges
 	edges = M.get_edges()
-	#"""E_i = []
-	#for edge in range(0, len(edges)):
-	#	if M.is_boundary_edge(edge):
-	#		# Skip boundary edges
-	#		continue
-	#	else:
-	#		E_i.append(edge)"""
-	E_i = [x for x in edges if x not in boundaryEdges]
+
+	# Get the boundary edge with the vertex that has the lowest index,
+	# also convert edge indices to tuples of vertex indices
+	minIndex = 99999
+	walkEdge = 99999
+	boundEdgeCoords = []
+	for i in boundaryEdges:
+		edge = edges[i]
+		boundEdgeCoords.append(edge)
+		if edge[0] < minIndex:
+			minIndex = edge[0]
+			walkEdge = i
+
+	# Get all the inner edges (||E_i||)
+	E_i = [x for x in edges if x not in boundEdgeCoords]
 
 	# Get all boundary vertices
 	boundVerts = []
-	for boundEdge in boundaryEdges:
+	for boundEdge in boundEdgeCoords:
 		for i in range(0, 2):
-			if boundEdge not in boundVerts:
-				boundVerts.append(boundEdge)
+			if boundEdge[i] not in boundVerts:
+				boundVerts.append(boundEdge[i])
+	print("boundaryEdges =", boundaryEdges, "boundEdgeCoords =", boundEdgeCoords)
 	# Get all inner vertices
 	innerVerts = []
 	for inEdge in E_i:
@@ -456,11 +461,16 @@ def Convex_Boundary_Method(M, weights, r):
 	V_B = [v for (u,v) in uvPositions]
 
 	# -d0_I
-	copyTuplesList = [(x, y, -z) for (x, y, z) in tuplesList]
-	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(V))
+	copyTuplesList = [(x, y, -z) for (x, y, z) in d0_Ilist]
+	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(innerVerts))
+
+	print("Inner Edges: ",len(E_i))
+	print("W size: ", weightsCount)
 
 	# Right hand sides of formula (5) minus U or V
-	rhs = ((negd0_I.transposed()) * W * d0_B) 
+	transposenegd0_I = negd0_I.transposed()
+	rhs = transposenegd0_I * W
+	rhs = rhs * d0_B 
 
 	# Left hand sides of formula (5) minus U or V
 	lhs = (d0_I.transposed() * W * d0_I)
@@ -469,13 +479,30 @@ def Convex_Boundary_Method(M, weights, r):
 	lhs.Cholesky()
 	U_i = lhs.solve(rhs * U_B)
 	V_i = lhs.solve(rhs * V_B)
-
-	# Combine the inner and boundary UVs
-	#totalU = U_i + U_B
-	#totalV = V_i + V_B
-
-	# Create vertices out of the UVs
-	newVertices = zip(totalU, totalV)
+	
+	# Create a list of tuples of all the UVs we have
+	UV_i = list(zip(U_i, V_i))
+	UV_b = list(zip(U_B, V_B))
+	
+	# Link inner vertices to UV coordinates
+	UV_in = {}
+	uvCount = 0
+	print("boundVerts = ", boundVerts)
+	print("V size = ", len(V), ", UV_i size = ", len(UV_i), ", inner V size = ", len([x for x in V if x not in boundVerts]))
+	for vert in range(0, len(V)):
+		if vert not in boundVerts:
+			UV_in[vert] = UV_i[uvCount]
+			uvCount = uvCount + 1
+	# Link boundary vertices to UV coordinates
+	UV_bound = {}
+	UV_bound[minIndex] = UV_b[0]
+	uvCount = 1
+	for i in range(1, len(UV_b)):
+		print("edge ", uvCount, ": ", edges[walkEdge])
+		nextCoord = edges[walkEdge][1]
+		UV_bound[nextCoord] = UV_b[uvCount]
+		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if v == nextCoord][0])
+		uvCount = uvCount + 1
 
 	#M.uv_coordinates[???] = ???
 
