@@ -135,7 +135,7 @@ class Mesh():
 	def get_edge_vertices(self, edge):
 		return [ self.get_vertex(edge[0]), self.get_vertex(edge[1])]
 	
-	# Returns the flap of the given edge belonging to edge_index, that is two faces connected to the edge 1 for a boundary edge, 2 for internal edges
+	# Returns the flap of the given edge belonging to edge_index, that is faces connected to the edge: 1 for a boundary edge, 2 for internal edges
 	def get_flaps(self, edge_index):
 	
 		# TODO: implement yourself ***DONE***
@@ -395,14 +395,29 @@ def Convex_Boundary_Method(M, weights, r):
 	# Get all the vertices (||V||)
 	V = M.get_vertices()
 	# Get all the inner edges (||E_i||)
-	edges = M.get_edges()
+	"""edges = M.get_edges()
 	E_i = []
 	for edge in range(0, len(edges)):
 		if M.is_boundary_edge(edge):
 			# Skip boundary edges
 			continue
 		else:
-			E_i.append(edge)
+			E_i.append(edge)"""
+	E_i = [x for x in edges if x not in boundaryEdges]
+
+	# Get all boundary vertices
+	boundVerts = []
+	for boundEdge in boundaryEdges:
+		for i in range(0, 2):
+			if boundEdge[i] not in boundVerts:
+				boundVerts.append(boundEdge[i])
+	# Get all inner vertices
+	innerVerts = []
+	for inEdge in E_i:
+		for i in range(0, 2):
+			if inEdge[i] not in boundVerts:
+				if inEdge[i] not in innerVerts:
+					innerVerts.append(inEdge[i])
 
 
 	# /// 1.1.3 formula (3)
@@ -426,10 +441,10 @@ def Convex_Boundary_Method(M, weights, r):
 	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
 
 	# Seperate d0 into 2 matrices 
-	sliced_d0 = slice_triplets(tuplesList, [])
-	d0_B, d0_I = sliced_d0
+	sliced_d0 = slice_triplets(tuplesList, innerVerts)
+	d0_I, d0_B = sliced_d0
 
-	#(-d0_I.transposed()) * W * d0_B) * u_B
+	(-d0_I.transposed()) * W * d0_B) * u_B
 	
 	return M
 
