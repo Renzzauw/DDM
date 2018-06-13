@@ -1,5 +1,9 @@
 # File created on: 2018-06-07 13:31:55.107728
 #
+# CREATED BY:
+# Renzo Schindeler 5964962
+# Kasper Nooteboom 5845866
+#
 # IMPORTANT:
 # ----------
 # - Before making a new Practical always make sure you have the latest version of the addon!
@@ -438,9 +442,6 @@ def Convex_Boundary_Method(M, weights, r):
 		tuplesList.append((i, M.get_edge(i)[0] , 1))
 		tuplesList.append((i, M.get_edge(i)[1] , -1))
 
-	# Create the d0 operator a.k.a. the sparse matrix of size ||E_i|| x ||V||
-	d0 = ddm.Sparse_Matrix(tuplesList, len(E_i), len(V))
-
 	# /// 1.1.3 formula (5)
 
 	# Create sparse matrix W
@@ -488,6 +489,7 @@ def Convex_Boundary_Method(M, weights, r):
 		if vert not in boundVerts:
 			UV_in[vert] = UV_i[uvCount]
 			uvCount = uvCount + 1
+
 	# Link boundary vertices to UV coordinates
 	UV_bound = {}
 	UV_bound[minIndex] = UV_b[0]
@@ -499,8 +501,6 @@ def Convex_Boundary_Method(M, weights, r):
 		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if u == nextCoord][0])
 		uvCount = uvCount + 1
 
-	print(UV_in.keys())
-	print(UV_bound.keys())
 	for i in range(0, len(V)):
 		if i in boundVerts:
 			M.uv_coordinates[i] = UV_bound[i]
