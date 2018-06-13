@@ -15,6 +15,7 @@ import bpy
 
 # Place additional imports here
 import math
+import bmesh
 
 class Mesh():
 
@@ -203,10 +204,12 @@ class Mesh():
 
 		# Get the flaps with length 1 (aka the boundary edges)
 		result = []
+		
 		for index in range(0, len(edges)):
-			if self.is_boundary_edge(self.get_flaps(index)):
+			#if self.is_boundary_edge(self.get_flaps(index)):
+			if self.is_boundary_edge(index):
 				result.append(index)
-
+		
 		return result
 		
 	# Place any other accessors you need here
@@ -263,10 +266,10 @@ def DDM_Practical4(context):
 	x = B.solve(rhs)
 	
 	# A solution should yield the rhs when multiplied with B, ( B * x - v should be zero)
-	print(Vector( B * x ) - Vector(rhs) )
+	#print(Vector( B * x ) - Vector(rhs) )
 	
 	# You can drop the matrix back to a python representation using 'flatten'
-	print(B.flatten())
+	#print(B.flatten())
 	
 
 # You may place extra functions here
@@ -348,10 +351,11 @@ def uniform_weights(M):
 	edges = M.get_edges()
 	boundaryEdges = M.boundary_edges()
 	# Get the amount of weigths
-	weigthsAmount = edges - boundaryEdges
+	#weigthsAmount = edges - boundaryEdges
+	weigthsAmount = [x for x in edges if x not in boundaryEdges]
 	# Create a list of 1s
 	weights = []
-	for i in range(0, weigthsAmount):
+	for i in range(0, len(weigthsAmount)):
 		weights.append(1)
 
 	return weights
@@ -382,10 +386,11 @@ def Convex_Boundary_Method(M, weights, r):
 	# Calculate UV positions on the circle
 	uvPositions = []
 	angleSum = 0
-	uvPositions.append(r, 0)
-	for i in range(2, len(sectorAngles) + 1):
+	uvPositions.append((r, 0))
+	for i in range(2, len(sectorAngles)): #+ 1):
+		# TODO: not sure of deze comment wel gucci is 
 		angleSum = angleSum + sectorAngles[i]
-		uv = r * (math.cos(sectorAngles[angleSum]), math.sin(sectorAngles[angleSum]))
+		uv = r * (math.cos(angleSum), math.sin(angleSum))
 		uvPositions.append(uv)
 
 	# /// 1.1.2 [weights calculated in formulas above]
@@ -396,21 +401,21 @@ def Convex_Boundary_Method(M, weights, r):
 	V = M.get_vertices()
 	# Get all the inner edges (||E_i||)
 	edges = M.get_edges()
-	"""E_i = []
-	for edge in range(0, len(edges)):
-		if M.is_boundary_edge(edge):
-			# Skip boundary edges
-			continue
-		else:
-			E_i.append(edge)"""
+	#"""E_i = []
+	#for edge in range(0, len(edges)):
+	#	if M.is_boundary_edge(edge):
+	#		# Skip boundary edges
+	#		continue
+	#	else:
+	#		E_i.append(edge)"""
 	E_i = [x for x in edges if x not in boundaryEdges]
 
 	# Get all boundary vertices
 	boundVerts = []
 	for boundEdge in boundaryEdges:
 		for i in range(0, 2):
-			if boundEdge[i] not in boundVerts:
-				boundVerts.append(boundEdge[i])
+			if boundEdge not in boundVerts:
+				boundVerts.append(boundEdge)
 	# Get all inner vertices
 	innerVerts = []
 	for inEdge in E_i:
@@ -446,18 +451,98 @@ def Convex_Boundary_Method(M, weights, r):
 	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(innerVerts))
 	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(V) - len(innerVerts))
 	
-	u_B = Vector([u for (u,v) in uvPositions])
-	v_B = Vector([v for (u,v) in uvPositions])
+	# Get u_B and v_B from the already calculated boundary UVs
+	U_B = [u for (u,v) in uvPositions]
+	V_B = [v for (u,v) in uvPositions]
 
-	rhs_u = ((-d0_I.transposed()) * W * d0_B) * u_B
-	rhs_v = ((-d0_I.transposed()) * W * d0_B) * v_B
-	
+	# -d0_I
+	copyTuplesList = [(x, y, -z) for (x, y, z) in tuplesList]
+	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(V))
+
+	# Right hand sides of formula (5) minus U or V
+	rhs = ((negd0_I.transposed()) * W * d0_B) 
+
+	# Left hand sides of formula (5) minus U or V
+	lhs = (d0_I.transposed() * W * d0_I)
+
+	# Calculate the the inner UVs
+	lhs.Cholesky()
+	U_i = lhs.solve(rhs * U_B)
+	V_i = lhs.solve(rhs * V_B)
+
+	# Combine the inner and boundary UVs
+	#totalU = U_i + U_B
+	#totalV = V_i + V_B
+
+	# Create vertices out of the UVs
+	newVertices = zip(totalU, totalV)
+
+	#M.uv_coordinates[???] = ???
+
 	return M
 
 # Using Least Squares Conformal Mapping, calculate the uv-coordinates of a given mesh M and return M with those uv-coordinates applied
 def LSCM(M): 
 
 	# TODO: implement yourself
+	#	                                MMMMMM=                                      
+	#                           .MMMMMMMMMMMMMM                                   
+	#                         MMMMMM         MMMM                                 
+	#                      MMMMM              MMMMM.                              
+	#                MMMMMMMM                  ?MMMM.                             
+	#             .MMMMMMMM7MM                  MMMMM                             
+	#             MMMMMMMMM MM                   MMMM                             
+	#             MMMMMMMMM .MM                   MMM                             
+	#            .MMMMMMM.   MM.M.   =MMMMMMMM.   MMM                             
+	#             MMMMMMMM.MMMMMM.  MMMMMMMM MMM  MMM                             
+	#             MMMMMMMMMMMM     MMMMMMMMM  MMM MMM                             
+	#            MMM    MMM:  MM   MMMMMMMMM  MMM MMM                             
+	#           8MM.    MMMMMMMM=  MMMMMMMM.  .M ,MM7                             
+	#          MMMMMMMM..          MMMMM.     M  MMM                              
+	#         .MMMMMMMMMMMMMMM       MMMMMMMMM.  MMM                              
+	#        .MMM        MMMMMMMMMMM.           MMMM                              
+	#        MMM                .~MMMMMMM.      MMM.                              
+	#       MMM.                               MMMM                               
+	#      .MMM                                MMMM                               
+	#      MMM                                DMMM                                
+	#     MMM                                 MMMM                                
+	#     MMM                                .MMM                                 
+	#    MMM                      MM        .MMM                                  
+	#    MMM                     .MM  MM.   MMM~                                  
+	#    MMM                     MMM .MM.   MMM                         MMMMM     
+	#    MMM                     MM. MMM   MMM                        MMM   MMO   
+	#    MMM                     MM  MM   .MMM                      MMMM     MM   
+	#    MM~                    MM. MMM   MMM.                     MMM      IMM   
+	#    MM.                    MM  MM.  .MMM                    .MMM.      MM    
+	#    MM                     M  MMN   .MMM                   MMMM       MM.    
+	#    MM+                   MM MMM    .MM 7MMMMMMMMMMM      MMM.       MM      
+	#    MMM                  .M  MM      MMMMMM. .. MMMMMMM MMM.       MMM.      
+	#    MMM                  +M MMM      MM    .MM     .MMMMMM.      .MMM.       
+	#    ?MM                  M  MM       .      MMM      ~MM.       MMMM         
+	#    .MM                 MM  MM            ,MMMMMMMMMMM         MMMM          
+	#     MMM              MM     MM          MMMMMMMMMMMMMMM     MMMMM           
+	#     MMM            .M     N  MM                  ..MMMMM.     MMMM          
+	#     .MM             MMMM MMMMMM                     .MMMMM        DMM       
+	#      MMM              MMMMM.MM.             ,M,       .MMM.        MM       
+	#       MMM               M.                  MMM         MMM.  .MMMM         
+	#       MMMM                                              MMM.    MM          
+	#        =MMM.                            MM.             MMM      MM         
+	#          MMMM.                          MM              MMM       M         
+	#            MMMM                                         MMMMM,. MMM         
+	# .          MMMMMMM.                     MMM            MMM MMMMMM.          
+	# MMMM      MMN  .MMMMM                               .MMMD                   
+	# MM MMN  .MM    MM MMMMMMMM~ .              M.     .MMMM                     
+	# MM   MM$MM   MMN      MMMMMMMMMM.          M.   .MMMM                       
+	#  M.   MMM   MM              MMMMM  MMMMMMMMM~MMMMMM                         
+	#  MM      .MMN          .. . +MM,  8MM .MMMMMMMM.                            
+	#   M?    NMM           MMMMMMMMM   MM                                        
+	#   .M  .MM7            MMM MMMM   MM                                         
+	#     MMMM              OMM       .MM                                         
+	#      .                 MMM      MM                                          
+	#                        .MMM    MM                                           
+	#                         .MMD  MMM                                           
+	#                           MMMMM?                                            
+	#                            MMM.                                           
 
 	return M
 	
@@ -486,7 +571,6 @@ def get_mesh():
 def show_mesh(M, name):
 	
 	# TODO: implement yourself ***DONE***
-	# TODO: UV implementeren VVV
 	
 	# Note that in order to apply UV-coordinates to a mesh, the mesh needs to have at least 1 UV-layer (denoted as UV-map in the Blender interface under "data") with data.
 	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and 
@@ -508,5 +592,19 @@ def show_mesh(M, name):
 	mesh.from_pydata(vertices, [], faces)
 	# Update mesh changes
 	mesh.update()
+	# Create a b_mesh for getting a UV layer
+	b_mesh = bmesh.new()
+	b_mesh.from_mesh(mesh)
+	# Create a UV layer
+	uvLayer = b_mesh.loops.layers.uv.new()
+	for triangle in b_mesh.faces:
+		for loop in triangle.loops:
+			uv = loop[uvLayer]
+			uv.uv = M.get_uv_coordinate(loop.vert.index)
+	# Convert the b_mesh back to a regular mesh
+	b_mesh.to_mesh(mesh)
+	mesh.update()
+
+
 
     
