@@ -416,26 +416,21 @@ def Convex_Boundary_Method(M, weights, r):
 	# Create the d0 operator a.k.a. the sparse matrix of size ||E_i|| x ||V||
 	d0 = ddm.Sparse_Matrix(tuplesList, len(E_i), len(V))
 
-	# /// 1.1.3 formula (4 staat deze op juiste plek????? Ik gok dat deze naar de main PRACTICAL 4  functie moet ofzo)
-
-	# W = ???
-	# u = lijst van u-coords. ???
-	# v = lijst van v-coords. ???
-	# d0 hebben we al
-	# met al deze dingen hierboven kunnen we de energy E op punt (u, v) berekenen met formule 4:
-	# E = u.transposed() * d0.transposed() * W * d0 * u + v.transposed() * d0.transposed() * W * d0 * v
-
 	# /// 1.1.3 formula (5)
 
+	# Create sparse matrix W
+	weightsList = []
+	weightsCount = len(weights)
+	for i in range(0, weightsCount):
+		weightsList.append((i, i, weights[i]))
+	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
+
 	# Seperate d0 into 2 matrices 
-	# sliced_d0 = slice_triplets(???, d0)
-	# d0_b = sliced_d0[0] (of moeten hier indexen andersom zijn?)
-	# d0_i = sliced_d0[1]
-	# ?????????????
-	
+	sliced_d0 = slice_triplets(tuplesList, [])
+	d0_B, d0_I = sliced_d0
 
+	#(-d0_I.transposed()) * W * d0_B) * u_B
 	
-
 	return M
 
 # Using Least Squares Conformal Mapping, calculate the uv-coordinates of a given mesh M and return M with those uv-coordinates applied
@@ -473,8 +468,10 @@ def show_mesh(M, name):
 	# TODO: UV implementeren VVV
 	
 	# Note that in order to apply UV-coordinates to a mesh, the mesh needs to have at least 1 UV-layer (denoted as UV-map in the Blender interface under "data") with data.
-	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and differs from the use in the assignment itself as it simply means "some polyon in the mesh".
-	# In order to view the UV-coordinates in the Blender interface make sure the renderer is set to "Blender Render", the mesh has a material (Properties -> Material) with a texture map (for example a Checkerboard under Properties -> Texture).
+	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and 
+	# differs from the use in the assignment itself as it simply means "some polyon in the mesh".
+	# In order to view the UV-coordinates in the Blender interface make sure the renderer is set to "Blender Render", the mesh has a material (Properties -> Material) with a texture map 
+	# (for example a Checkerboard under Properties -> Texture).
 	# See https://docs.blender.org/api/current/bpy.types.Mesh.html#mesh-data for more details.
 		
 	# Create a mesh and object first
@@ -490,3 +487,5 @@ def show_mesh(M, name):
 	mesh.from_pydata(vertices, [], faces)
 	# Update mesh changes
 	mesh.update()
+
+    
