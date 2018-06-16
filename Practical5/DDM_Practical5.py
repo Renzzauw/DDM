@@ -1,4 +1,4 @@
-# File created on: 2018-04-26 14:54:00.777450
+# File created on: 2018-06-12 11:39:18.938293
 #
 # IMPORTANT:
 # ----------
@@ -6,6 +6,8 @@
 # - Delete the old versions of the files in your user folder for practicals you want to update (make a copy of your work!).
 # - For the assignment description and to download the addon, see the course website at: http://www.cs.uu.nl/docs/vakken/ddm/
 # - Mail any bugs and inconsistencies you see to: uuinfoddm@gmail.com
+# - Do not modify any of the signatures provided.
+# - You may add as many functions to the assignment as you see fit but try to avoid global variables.
 
 import ddm
 import bpy
