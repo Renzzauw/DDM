@@ -77,10 +77,18 @@ def neighbor_indices(vertex_index, vertices, faces):
 	
 # Calculates the source (non-sparse) matrix P
 def source_matrix(p_index, vertices, neighbor_indices):
-	return Matrix()
+	pDist = []
+	currPoint = vertices[p_index]
+	# Subtract each neighbour from the current point
+	for p in neighbor_indices:
+		diff = currPoint - vertices[p]
+		pDist.append(diff)
+
+	return Matrix(pDist)
 	
 # Calculates the target (non-sparse) matrix Q
 def target_matrix(p_index, vertices, neighbor_indices):
+	#TODO: dit ken nog niet ofso
 	return Matrix()
 	
 # Returns a triple of three dense matrices that are the Singular Value Decomposition (SVD)
@@ -90,10 +98,50 @@ def SVD(P, Q):
 
 	# Make sure that the result of the singular value decomposition is a triple of numpy.matrix and not some other datastructure.
 	return (Matrix(), Matrix(), Matrix())
+	# 	                                                                                         .+/     .- 
+	#                                                                                          /NN.`:smm+`
+	#                                                                                           hmmNdo-   
+	#                                                                                        -+hdNy.      
+	#                                                                                    `:sdy+. .`       
+	#                                                                            `:o.`-+yds/`             
+	#                                                                        .:/hdmNNmdo-`                
+	#                                                                    `:ohmmmNdmys/`                   
+	#                                                                `-+ydmddmdhmo`                       
+	#                                               `-+/`         `:ohdddmddmds/-`                        
+	#                                            .:ohmmms      ./shddNmdmmyo:.`                           
+	#                                 `.: `..`./ydmmNdy/` .ossyhdmmdmmys+-`                               
+	#                                 ommohmdydmNmyo-`.+hmmddhhddddyo:.`                                  
+	#                                .smmddmmmmy:.   `:dNMNmhhhddy/`                                      
+	#                            ``.ymmmmNNNNNd`  -/oyhhyhhyydds:`                                        
+	#                        ../oyydNNMNNmdNNNMy+s+/-.-/ymmNdo-`                                          
+	#                     .-+ydmmmmNNNMMh.`hNNNNs-.-+hdNmo/:`                                             
+	#                 `sysdNmmNNNNmyhNNMMshmNNNNNdhmNNNNh                                                 
+	#                 -NMMMNMNNdy/.`-hNMMNNNNNNNNNNNNNNNN/                                                
+	#                  oNMMMy+-``-+hmNNNNNNNNNNNNNNNNNNNNm.                                               
+	#                   :sho   :dNNNNNNNNNNNNNdmNNMMNNNNNNd.                                              
+	#                         -mMNNNNNNNNNNmh:`-yNMMMNNNNNNh`                                             
+	#                         +NNNNNNmddmd--h`   :sMMMNNNNh-                                              
+	#                 `./yho-sdmddmmddddyo` h-     yMMNNd/`                                               
+	#              `./sdmdhydddhymNmddddy---:      :ydy+`                                                 
+	#           `-+ydmdhssyhs/. `NNNmdds `                                                                
+	#         /shdmdyyyddd/.     hMNmmdy                                                                  
+	#         /ohhyyhhdh/-       yNNmmmm-                                                                 
+	#       .:odmdhdmd-      `./sdNNmmmd+                                                                 
+	#    ./shddhdmNNmmy`   `:sdmysmmy+:`                                                                  
+	# `+ydmmdmN+dNmNmmms`./yddo.  `                                                                       
+	# .dNNNNNNydsNNmmmmNmdmd+`                                                                            
+	#  .dNNNNNmhMNNmNNNNmh/                                                                               
+	#   `hNNNNNNmmmmNNNy-                                                                                 
+	#    `hNNNNNNNNNms.                                                                                   
+	#     `hNNNmNNmo`                                                               
+	#      `hNNNd/                                                                  
+	#        /s: 
 
 # Returns the dense matrix R
 def rigid_transformation_matrix(U, Sigma, V):
-	return Matrix()
+
+	# U * transpose of V	
+	return (U * V.transposed())
 
 # Returns a list of rigid transformation matrices R, one for each vertex (make sure the indices match)
 # the list_of_1_rings is a list of lists of neighbor_indices
