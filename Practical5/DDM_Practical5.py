@@ -22,7 +22,21 @@ from numpy import identity
 
 # Return a list of vertices
 def get_vertices(context):
-	pass
+	#TODO: dit ff checken (kopie + aanpassingen van oude assignments)
+
+	# Get the currently active object
+	obj = bpy.context.scene.objects.active
+	# Create empty triangles list
+	vertices = []
+	# Get this object's polygons
+	polygons = obj.data.polygons
+	# Get all the vertices from each mesh polygon
+	for p in polygons:
+		polygonVertices = p.vertices
+		for i in range(0, len(polygonVertices)):
+			vertices.append(polygonVertices[i])
+
+	return vertices
 	
 # Returns a list of triangles of vertex indices (you need to perform simple triangulation) 
 def get_faces(context):	
