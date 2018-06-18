@@ -139,13 +139,14 @@ def SVD(P, Q):
 
 # Returns the dense matrix R
 def rigid_transformation_matrix(U, Sigma, V):
-
+	# TODO: KLOPT DIT WELLLLLLl?????????????!?111????/
 	# U * transpose of V	
 	return (U * V.transposed())
 
 # Returns a list of rigid transformation matrices R, one for each vertex (make sure the indices match)
 # the list_of_1_rings is a list of lists of neighbor_indices
 def local_step(source_vertices, target_vertices, list_of_1_rings):
+	
 	return [Matrix(), Matrix()]
 
 # Returns the triplets of sparse d_0 matrix
@@ -203,7 +204,7 @@ def DDM_Practical5(context):
 	sceneObject = bpy.context.scene.objects.active
 
 	# TODO: get handles
-	handles = get_handles(objectje)
+	handles = get_handles(sceneObject)
 	
 	# TODO: get mesh data
 	
