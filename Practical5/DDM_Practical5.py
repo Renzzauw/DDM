@@ -22,7 +22,6 @@ from numpy import identity
 
 # Return a list of vertices
 def get_vertices(context):
-	#TODO: dit ff checken (kopie + aanpassingen van oude assignments)
 
 	# Get the currently active object
 	obj = bpy.context.scene.objects.active
@@ -40,7 +39,7 @@ def get_vertices(context):
 	
 # Returns a list of triangles of vertex indices (you need to perform simple triangulation) 
 def get_faces(context):	
-	
+
 	# Get the currently active object
 	obj = bpy.context.scene.objects.active
 	# Create empty triangles list
@@ -62,7 +61,19 @@ def get_faces(context):
 
 # Returns the 1-ring (a list of vertex indices) for a vertex index
 def neighbor_indices(vertex_index, vertices, faces):
-	return [1, 4, 2, 5, 6]
+	neighbors = set()
+	for face in faces:
+		if face[0] == vertex_index:
+			neighbors.add(face[1])
+			neighbors.add(face[2])
+		if face[1] == vertex_index:
+			neighbors.add(face[0])
+			neighbors.add(face[2])
+		if face[2] == vertex_index:
+			neighbors.add(face[0])
+			neighbors.add(face[1])
+
+	return list(neighbors)
 	
 # Calculates the source (non-sparse) matrix P
 def source_matrix(p_index, vertices, neighbor_indices):
@@ -140,7 +151,11 @@ def DDM_Practical5(context):
 	max_movement = 0.001
 	max_iterations = 100
 
+	# Get the currently active object
+	sceneObject = bpy.context.scene.objects.active
+
 	# TODO: get handles
+	handles = get_handles(objectje)
 	
 	# TODO: get mesh data
 	
@@ -149,8 +164,6 @@ def DDM_Practical5(context):
 	# TODO: initial guess
 	
 	# TODO: ARAP until tolerance
-
-	pass
 
 	
 #########################################################################
