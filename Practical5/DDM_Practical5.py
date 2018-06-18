@@ -40,7 +40,25 @@ def get_vertices(context):
 	
 # Returns a list of triangles of vertex indices (you need to perform simple triangulation) 
 def get_faces(context):	
-	pass
+	
+	# Get the currently active object
+	obj = bpy.context.scene.objects.active
+	# Create empty triangles list
+	triangles = []
+	# Get this object's polygons
+	polygons = obj.data.polygons
+	# For each polygon, split into triangles and add those to the list
+	for p in polygons:
+		verts = p.vertices
+		# Every convex face consists of [vertices - 2] triangles
+		for i in range(0, len(verts) - 2):
+			tri = []
+			tri.append(obj.data.vertices[verts[0]].co)
+			tri.append(obj.data.vertices[verts[i + 1]].co)
+			tri.append(obj.data.vertices[verts[i + 2]].co)
+			triangles.append(tuple(tri))
+		
+	return triangles
 
 # Returns the 1-ring (a list of vertex indices) for a vertex index
 def neighbor_indices(vertex_index, vertices, faces):
