@@ -25,7 +25,7 @@ from numpy import identity
 def get_vertices(context):
 
 	# Get the currently active object
-	obj = bpy.context.scene.objects.active
+	obj = context.scene.objects.active
 	# Create empty triangles list
 	vertices = []
 	# Get this object's polygons
@@ -42,7 +42,7 @@ def get_vertices(context):
 def get_faces(context):	
 
 	# Get the currently active object
-	obj = bpy.context.scene.objects.active
+	obj = context.scene.objects.active
 	# Create empty triangles list
 	triangles = []
 	# Get this object's polygons
@@ -101,53 +101,18 @@ def target_matrix(p_index, vertices, neighbor_indices):
 # Returns a triple of three dense matrices that are the Singular Value Decomposition (SVD)
 def SVD(P, Q):
 
-	# Hint: search numpy
+	# Calculate S
+	S = P.transpose() * Q
+
+	U, Sigma, V = numpy.linalg.svd(S)
 
 	# Make sure that the result of the singular value decomposition is a triple of numpy.matrix and not some other datastructure.
-	return (Matrix(), Matrix(), Matrix())
-	# 	                                                                                         .+/     .- 
-	#                                                                                          /NN.`:smm+`
-	#                                                                                           hmmNdo-   
-	#                                                                                        -+hdNy.      
-	#                                                                                    `:sdy+. .`       
-	#                                                                            `:o.`-+yds/`             
-	#                                                                        .:/hdmNNmdo-`                
-	#                                                                    `:ohmmmNdmys/`                   
-	#                                                                `-+ydmddmdhmo`                       
-	#                                               `-+/`         `:ohdddmddmds/-`                        
-	#                                            .:ohmmms      ./shddNmdmmyo:.`                           
-	#                                 `.: `..`./ydmmNdy/` .ossyhdmmdmmys+-`                               
-	#                                 ommohmdydmNmyo-`.+hmmddhhddddyo:.`                                  
-	#                                .smmddmmmmy:.   `:dNMNmhhhddy/`                                      
-	#                            ``.ymmmmNNNNNd`  -/oyhhyhhyydds:`                                        
-	#                        ../oyydNNMNNmdNNNMy+s+/-.-/ymmNdo-`                                          
-	#                     .-+ydmmmmNNNMMh.`hNNNNs-.-+hdNmo/:`                                             
-	#                 `sysdNmmNNNNmyhNNMMshmNNNNNdhmNNNNh                                                 
-	#                 -NMMMNMNNdy/.`-hNMMNNNNNNNNNNNNNNNN/                                                
-	#                  oNMMMy+-``-+hmNNNNNNNNNNNNNNNNNNNNm.                                               
-	#                   :sho   :dNNNNNNNNNNNNNdmNNMMNNNNNNd.                                              
-	#                         -mMNNNNNNNNNNmh:`-yNMMMNNNNNNh`                                             
-	#                         +NNNNNNmddmd--h`   :sMMMNNNNh-                                              
-	#                 `./yho-sdmddmmddddyo` h-     yMMNNd/`                                               
-	#              `./sdmdhydddhymNmddddy---:      :ydy+`                                                 
-	#           `-+ydmdhssyhs/. `NNNmdds `                                                                
-	#         /shdmdyyyddd/.     hMNmmdy                                                                  
-	#         /ohhyyhhdh/-       yNNmmmm-                                                                 
-	#       .:odmdhdmd-      `./sdNNmmmd+                                                                 
-	#    ./shddhdmNNmmy`   `:sdmysmmy+:`                                                                  
-	# `+ydmmdmN+dNmNmmms`./yddo.  `                                                                       
-	# .dNNNNNNydsNNmmmmNmdmd+`                                                                            
-	#  .dNNNNNmhMNNmNNNNmh/                                                                               
-	#   `hNNNNNNmmmmNNNy-                                                                                 
-	#    `hNNNNNNNNNms.                                                                                   
-	#     `hNNNmNNmo`                                                               
-	#      `hNNNd/                                                                  
-	#        /s: 
+	return (U, Sigma, V)
 
 # Returns the dense matrix R
 def rigid_transformation_matrix(U, Sigma, V):
 	# U * transpose of V
-	Ri = (U * V)
+	Ri = (U * V.transposed())
 	# Calculate the determinant of Ri
 	det = numpy.linalg.det(Ri)
 	# Check if determinant == -1
@@ -161,19 +126,33 @@ def rigid_transformation_matrix(U, Sigma, V):
 		# Calculate the new Ri
 		newSigma = numpy.identity(Sigma.shape[0])
 		newSigma[smallestIndex][smallestIndex] = -1
-		Ri = U * newSigma * V
+		Ri = U * newSigma * V.transposed()
 
 	return Ri
 
 # Returns a list of rigid transformation matrices R, one for each vertex (make sure the indices match)
 # the list_of_1_rings is a list of lists of neighbor_indices
 def local_step(source_vertices, target_vertices, list_of_1_rings):
-	
-	return [Matrix(), Matrix()]
+	lijstie = []
+	for i in range(0, len(list_of_1_rings)):
+		# (1) Compose source and traget matrices
+		P = source_matrix(i, source_vertices, list_of_1_rings[i])
+		Q = target_matrix(i, target_vertices, list_of_1_rings[i])
+
+		# (3) Decompose S using SVD
+		U, Sigma, V = SVD(P, Q)
+
+		# (4) Calculate Ri
+		Ri = rigid_transformation_matrix(U, Sigma, V)
+		lijstie.append(Ri)
+
+	return lijstie
 
 # Returns the triplets of sparse d_0 matrix
 def d_0(vertices, faces):
 	return [(1,1,0.2), (1,2,0.3)]
+	# testament.stel_op();
+	# leven.beëindig();
 	
 # Return the sparse diagonal weight matrix W
 def weights(vertices, faces):
