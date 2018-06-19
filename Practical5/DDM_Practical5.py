@@ -11,6 +11,7 @@
 
 import ddm
 import bpy
+import numpy
 from numpy import array as Vector
 from numpy import matrix as Matrix
 from numpy import identity
@@ -88,8 +89,14 @@ def source_matrix(p_index, vertices, neighbor_indices):
 	
 # Calculates the target (non-sparse) matrix Q
 def target_matrix(p_index, vertices, neighbor_indices):
-	#TODO: dit ken nog niet ofso
-	return Matrix()
+	pDist = []
+	currPoint = vertices[p_index]
+	# Subtract each neighbour from the current point
+	for p in neighbor_indices:
+		diff = currPoint - vertices[p]
+		pDist.append(diff)
+
+	return Matrix(pDist)
 	
 # Returns a triple of three dense matrices that are the Singular Value Decomposition (SVD)
 def SVD(P, Q):
@@ -139,9 +146,24 @@ def SVD(P, Q):
 
 # Returns the dense matrix R
 def rigid_transformation_matrix(U, Sigma, V):
-	# TODO: KLOPT DIT WELLLLLLl?????????????!?111????/
-	# U * transpose of V	
-	return (U * V.transposed())
+	# U * transpose of V
+	Ri = (U * V)
+	# Calculate the determinant of Ri
+	det = numpy.linalg.det(Ri)
+	# Check if determinant == -1
+	if det == -1:
+		smallestValue = 99999999999
+		smallestIndex = 0
+		for i in range(0, Sigma.shape[0]):
+			if Sigma[i] < smallestValue:
+				smallestValue = Sigma[i][i]
+				smallestIndex = i
+		# Calculate the new Ri
+		newSigma = numpy.identity(Sigma.shape[0])
+		newSigma[smallestIndex][smallestIndex] = -1
+		Ri = U * newSigma * V
+
+	return Ri
 
 # Returns a list of rigid transformation matrices R, one for each vertex (make sure the indices match)
 # the list_of_1_rings is a list of lists of neighbor_indices
