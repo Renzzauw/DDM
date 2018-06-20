@@ -12,14 +12,13 @@
 import ddm
 import bpy
 import numpy
+import math
 from numpy import array as Vector
 from numpy import matrix as Matrix
 from numpy import identity
 
-	
-#################################
-# Place additional imports here #
-#################################
+# Create a global mesh object M
+M = Mesh([],[])
 
 # Return a list of vertices
 def get_vertices(context):
@@ -133,7 +132,7 @@ def rigid_transformation_matrix(U, Sigma, V):
 # Returns a list of rigid transformation matrices R, one for each vertex (make sure the indices match)
 # the list_of_1_rings is a list of lists of neighbor_indices
 def local_step(source_vertices, target_vertices, list_of_1_rings):
-	lijstie = []
+	result = []
 	for i in range(0, len(list_of_1_rings)):
 		# (1) Compose source and traget matrices
 		P = source_matrix(i, source_vertices, list_of_1_rings[i])
@@ -144,20 +143,83 @@ def local_step(source_vertices, target_vertices, list_of_1_rings):
 
 		# (4) Calculate Ri
 		Ri = rigid_transformation_matrix(U, Sigma, V)
-		lijstie.append(Ri)
+		result.append(Ri)
 
-	return lijstie
+	return result
 
 # Returns the triplets of sparse d_0 matrix
 def d_0(vertices, faces):
-	return [(1,1,0.2), (1,2,0.3)]
-	# testament.stel_op();
-	# leven.beëindig();
+	
+	global M
+	edges = M.get_edges()
+
+	# Get the boundary edge with the vertex that has the lowest index,
+	# also convert edge indices to tuples of vertex indices
+	boundEdgeCoords = []
+	boundaryEdges = M.boundary_edges()
+	for i in boundaryEdges:
+		edge = edges[i]
+		boundEdgeCoords.append(edge)
+
+
+	# Get all the inner edges (||E_i||)
+	E_i = [x for x in edges if x not in boundEdgeCoords]
+
+	# Create the tuples of the positions the of 1s and -1s 
+	tuplesList = []
+	for i in range(0, len(E_i)):
+		tuplesList.append((i, M.get_edge(i)[0] , 1))
+		tuplesList.append((i, M.get_edge(i)[1] , -1))
+
+
+
+	return tuplesList		#[(1,1,0.2), (1,2,0.3)]
 	
 # Return the sparse diagonal weight matrix W
 def weights(vertices, faces):
-	return ddm.Sparse_Matrix([], 1, 1)
+	
+	global M
+	
+	# Get all edges
+	edges = M.get_edges()
 
+	weights = []
+	for edge in range(0, len(edges)):
+		if M.is_boundary_edge(edge):
+			# Skip boundary edges
+			continue
+		else:
+			# Get the flaps
+			edgeFlaps = M.get_flaps(edge)
+			edges1 = M.get_face_edges(edgeFlaps[0])
+			edges2 = M.get_face_edges(edgeFlaps[1])
+			# Get the edges of both faces excluding the shared edge
+			edges1.remove(edge)
+			edges2.remove(edge)
+			# Calculate the angles between these edges
+			# Angle of face 1
+			a = M.get_edge_length(edges1[0])
+			b = M.get_edge_length(edges1[1])
+			sharedEdge = M.get_edge_length(edge)
+			angle1 = math.acos(( a**2 + b**2 - sharedEdge**2) / (2 * a * b))
+			# Angle of face 2
+			c = M.get_edge_length(edges2[0])
+			d = M.get_edge_length(edges2[1])
+			sharedEdge = M.get_edge_length(edge)
+			angle2 = math.acos(( c**2 + d**2 - sharedEdge**2) / (2 * c * d))
+			# Calculate final weight
+			weigth = (math.atan(angle1) + math.atan(angle2)) / 2
+			weights.append(weigth)
+	
+	# Create sparse matrix W
+	weightsList = []
+	weightsCount = len(weights)
+	for i in range(0, weightsCount):
+		weightsList.append((i, i, weights[i]))
+	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
+	
+	return W
+	
 # Returns the right hand side of least-squares system
 def RHS(vertices, faces):
 
@@ -197,12 +259,15 @@ def ARAP_iteration(vertices, faces, max_movement):
 	return [(1,1,1), (1,1,1), (1,1,1)]
 	
 def DDM_Practical5(context):
-
 	max_movement = 0.001
 	max_iterations = 100
 
 	# Get the currently active object
 	sceneObject = bpy.context.scene.objects.active
+	vertices = get_vertices(context)
+	faces = get_faces(context)
+	global M
+	M = Mesh(vertices, faces)
 
 	# TODO: get handles
 	handles = get_handles(sceneObject)
@@ -327,3 +392,190 @@ def slice_triplets(triplets, fixed_colums):
 			right_triplets.append( (triplet[0], new_column_index, triplet[2]) )
 			
 	return (left_triplets, right_triplets)
+
+#####################################
+#	 MESH CLASS FROM PRACTICAL 4 	#
+#####################################
+
+class Mesh():
+
+	# Construct a new mesh according to some data
+	def __init__(self, vertices, faces):
+	
+		# The vertices are stored as a list of vectors
+		self.vertices = vertices
+		
+		# The faces are stored as a list of triplets of vertex indices
+		self.faces = faces
+	
+		# The uv-coordinates are stored as a list of vectors, with their indices corresponding to the indices of the vertices (there is exactly one uv-coordinate per vertex)
+		self.uv_coordinates = []
+		for vertex in vertices:
+			self.uv_coordinates.append(Vector( (vertex[0], vertex[2]) ))
+	
+		self.build_edge_list()
+	
+	# This function builds an edge list from the faces of the current mesh and stores it internally.
+	# Make sure that each edge is unique. Remember that order does NOT matter, e.g. (1, 0) is the same edge as (0, 1).
+	# The indices of the edges should correspond to the indices of the weights in your weight calculation (e.g. both lists have the same size).
+	# All subsequent calls that do something with edges should return their indices. Getting the actual edge can then be done by calling get_edge(index).
+	def build_edge_list(self):
+
+		# Get the faces
+		faces = self.get_faces()
+
+		result = []
+
+		for face in faces:
+			# Get each vertex of a face
+			v1 = face[0]
+			v2 = face[1]
+			v3 = face[2]
+			# Get all the edges of a face (including mirrored edges)
+			tuple1 = (v1, v2)
+			tuple2 = (v2, v3)
+			tuple3 = (v3, v1)
+			tuple1mirror = (v2, v1)
+			tuple2mirror = (v3, v2)
+			tuple3mirror = (v1, v3)
+			# Add the edges to the list
+			if tuple1 not in result and tuple1mirror not in result:
+				result.append(tuple1)
+			if tuple2 not in result and tuple2mirror not in result:
+				result.append(tuple2)
+			if tuple3 not in result and tuple3mirror not in result:
+				result.append(tuple3)	
+
+		self.edges = result
+	
+	# ACCESSORS
+	
+	def get_vertices(self):
+		return self.vertices
+		
+	def get_vertex(self, index):
+		return self.vertices[index]
+	
+	def get_edges(self):
+		return self.edges
+		
+	def get_edge(self, index):
+		return self.edges[index]
+	
+	def get_faces(self):
+		return self.faces
+		
+	def get_face(self, index):
+		return self.faces[index]
+		
+	def get_uv_coordinates(self):
+		return self.uv_coordinates
+		
+	def get_uv_coordinate(self, index):
+		return self.uv_coordinates[index]
+	
+	# Returns the list of vertex coordinates belonging to a face.
+	def get_face_vertices(self, face):
+		return [ self.get_vertex(face[0]), self.get_vertex(face[1]), self.get_vertex(face[2]) ]
+	
+	# Looks up the edges belonging to this face in the edge list and returns their INDICES (not value). Make sure that each edge is unique (recall that (1, 0) == (0, 1)). These should match the order of your weights.
+	def get_face_edges(self, face):
+		
+		# Get the list of all edges in the Mesh
+		edges = self.get_edges()
+		# Get each edge from the given face (including mirrored identical edges)
+		edge1 = (face[0], face[1])
+		edge2 = (face[1], face[2])
+		edge3 = (face[2], face[0])
+		edge1mirror = (face[1], face[0])
+		edge2mirror = (face[2], face[1])
+		edge3mirror = (face[0], face[2])
+		# Create a list for the end result
+		result = []
+		# Get edge indices
+		if edge1 in edges:
+			result.append(edges.index(edge1))
+		else:
+			result.append(edges.index(edge1mirror))
+		if edge2 in edges:
+			result.append(edges.index(edge2))
+		else:
+			result.append(edges.index(edge2mirror))
+		if edge3 in edges:
+			result.append(edges.index(edge3))
+		else:
+			result.append(edges.index(edge3mirror))
+		
+		return result
+	
+	# Returns the vertex coordinates of the vertices of the given edge (a pair of vertex indices e.g. (0,1) ) 
+	def get_edge_vertices(self, edge):
+		return [ self.get_vertex(edge[0]), self.get_vertex(edge[1])]
+	
+	# Returns the flap of the given edge belonging to edge_index, that is faces connected to the edge: 1 for a boundary edge, 2 for internal edges
+	def get_flaps(self, edge_index):
+	
+		# Watch out: edges might be on the boundary
+
+		# Get all the faces
+		faces = self.get_faces()
+		# Get the edge from the given edge index
+		edge = self.get_edge(edge_index)
+		# Create a list to return
+		result = []
+		# Get the edges from each face
+		for face in faces:
+			edge1 = (face[0], face[1])
+			edge2 = (face[1], face[2])
+			edge3 = (face[2], face[0])
+			edge1mirror = (face[1], face[0])
+			edge2mirror = (face[2], face[1])
+			edge3mirror = (face[0], face[2])
+			# Check if the edge exists in the list of faces (check each edge and its identical mirror for each face)
+			if edge == edge1 or edge == edge2 or edge == edge3 or edge == edge1mirror or edge == edge2mirror or edge == edge3mirror:
+				result.append(face)
+
+		return result
+		
+	# Returns the length of the given edge with edge_index
+	def get_edge_length(self, edge_index):
+
+		# Get the edge from the given index
+		edge = self.get_edge(edge_index)
+		# Get the vertex positions
+		v1 = self.get_vertex(edge[0])
+		v2 = self.get_vertex(edge[1])
+		# Calculate the length of the edge with the edge distances
+		xdist = v1[0] - v2[0]
+		ydist = v1[1] - v2[1]
+		zdist = v1[2] - v2[2]
+		# square root (x-distance squared + y-distance squared + z-distance squared)
+		result = (xdist**2 + ydist**2 + zdist**2)**(.5)
+
+		return result
+		
+	# Returns whether the edge has two adjacent faces
+	def is_boundary_edge(self, edge_index):
+				
+		# Get the flaps of the edge at the given edge index
+		flaps = self.get_flaps(edge_index)
+		# Check the amount of faces:
+		# 1 			>> boundary edge found, boundary edge has only 1 face	>> True
+		# Anything else >> not a boundary edge									>> False
+		return len(flaps) == 1
+	
+	# Returns the boundary of the mesh by returning the indices of the edges (from the internal edge list) that lie around the boundary.
+	def boundary_edges(self):
+		
+		# Get all the edges
+		edges = self.get_edges()
+
+		# Get the flaps with length 1 (aka the boundary edges)
+		result = []
+		
+		for index in range(0, len(edges)):
+			#if self.is_boundary_edge(self.get_flaps(index)):
+			if self.is_boundary_edge(index):
+				result.append(index)
+		
+		return result
