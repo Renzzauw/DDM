@@ -449,6 +449,7 @@ def RHS(vertices):
 
 	# You need to convert the end result to a dense vector
 	# return Vector([1,2,4,5,5,6])
+	# lol why
 	
 # Returns a list of vertices coordinates (make sure the indices match)
 def global_step(vertices, rigid_matrices):
