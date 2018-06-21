@@ -211,7 +211,6 @@ handles = []
 handleVerts = []
 W = ddm.Sparse_Matrix([], 1, 1)
 E_i = []
-rigids = []
 edgesGlob = []
 lhs = ddm.Sparse_Matrix([], 1, 1)
 neighborlist = []
@@ -348,15 +347,14 @@ def local_step(source_vertices, target_vertices, list_of_1_rings):
 # Returns the triplets of sparse d_0 matrix
 def d_0(vertices, faces):
 	global E_i
-	global M
 
 	# Create the tuples of the positions the of 1s and -1s 
 	tuplesList = []
 	for i in range(0, len(E_i)):
-		tuplesList.append((i, E_i[i][0], 1))
-		tuplesList.append((i, E_i[i][1], -1))
+		tuplesList.append((i, vertices.index(E_i[i][0]), 1))
+		tuplesList.append((i, vertices.index(E_i[i][1]), -1))
 
-	return tuplesList		#[(1,1,0.2), (1,2,0.3)]
+	return tuplesList
 	
 # Return the sparse diagonal weight matrix W
 def weights(vertices, faces):
@@ -410,7 +408,7 @@ def negTripList(triplets):
 	return copyList
 	
 # Returns the right hand side of least-squares system
-def RHS(vertices):
+def RHS(vertices, rigids):
 	global d0
 	global d0_I
 	global d0_B
@@ -419,18 +417,22 @@ def RHS(vertices):
 	global handleVerts
 	global W
 	global E_i
-	global rigids
 	global edgesGlob
 
 	# Compute G
 	g = []
 	countertje = 0
+	print("dittus: ", len(rigids))
 	for edge in E_i:
-		dinges = (edge[0] - edge[1]) * numpy.divide(numpy.add(rigids[vertices.index(edge[0])], rigids[vertices.index(edge[1])]), 2)
+		dinges = numpy.multiply((edge[0] - edge[1]), numpy.divide(numpy.add(rigids[vertices.index(edge[0])], rigids[vertices.index(edge[1])]), 2))
+		print(type(dinges))
+		if countertje == 0:
+			print("dinges:", dinges)
 		g.append( (countertje, 0, dinges[0]) )
 		g.append( (countertje, 1, dinges[1]) )
 		g.append( (countertje, 2, dinges[2]) )
 		countertje = countertje + 1
+	#print(g)
 	G = ddm.Sparse_Matrix(g, len(E_i), 3)
 
 	# Compute p_appelstroop_B
@@ -458,7 +460,7 @@ def global_step(vertices, rigid_matrices):
 	global lhs
 
 	# TODO: Construct RHS
-	rhs = RHS(vertices)
+	rhs = RHS(vertices, rigid_matrices)
 	rightx = []
 	righty = []
 	rightz = []
@@ -688,10 +690,9 @@ def slice_triplets(triplets, fixed_colums):
 	
 	# and constructing the other columns from those
 	other_columns = [x for x in range(0, max_column + 1) if x not in fixed_colums]
-	
+
 	# Now split the triplets
 	for triplet in triplets:
-	
 		if (triplet[1] in fixed_colums):
 			new_column_index = fixed_colums.index(triplet[1])
 			left_triplets.append( (triplet[0], new_column_index, triplet[2]) )
