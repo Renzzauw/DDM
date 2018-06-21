@@ -214,6 +214,8 @@ E_i = []
 rigids = []
 edgesGlob = []
 lhs = ddm.Sparse_Matrix([], 1, 1)
+neighborlist = []
+stopARAP = False
 
 # Return a list of vertices
 def get_vertices(context):
@@ -445,7 +447,7 @@ def RHS(vertices):
 
 	rhs = neg_d0_I.transposed() * W * d0_B * p_appelstroop_B + d0_I.transposed() * G
 
-	return rhs
+	return rhs.flatten()
 
 	# You need to convert the end result to a dense vector
 	# return Vector([1,2,4,5,5,6])
@@ -453,13 +455,29 @@ def RHS(vertices):
 	
 # Returns a list of vertices coordinates (make sure the indices match)
 def global_step(vertices, rigid_matrices):
+	global lhs
 
 	# TODO: Construct RHS
 	rhs = RHS(vertices)
+	rightx = []
+	righty = []
+	rightz = []
+	for v in rhs:
+		rightx.append(v[0])
+		righty.append(v[1])
+		rightz.append(v[2])
 	
 	# TODO: solve separately by x, y and z (use only a single vector)
+	x = lhs.solve(rightx)
+	y = lhs.solve(righty)
+	z = lhs.solve(rightz)
 
-	return [(1,1,1), (1,1,1), (1,1,1)]
+	# Convert to coordinates
+	augurk = []
+	for i in range(len(x)):
+		augurk.append( (x[i], y[i], z[i]) )
+
+	return augurk
 	
 # Returns the left hand side of least-squares system
 def precompute(vertices, faces):
@@ -498,14 +516,27 @@ def initial_guess(vertices):
 		doenouesnormaal.append(numpy.identity(3))
 	return doenouesnormaal
 	
-def ARAP_iteration(vertices, faces, max_movement):
+def ARAP_iteration(vertices, target_vertEces, max_movement):
+	global stopARAP
 
 	# TODO: local step
+	Ri = local_step(vertices, target_vertEces)
 	
 	# TODO: global step
+	newTarget = global_step(vertices, Ri)
+
+	# Checks if the tolerance has been fucked with
+	maxDist = 0
+	for v in range(len(newTarget)):
+		distVect = newTarget[v] - vertices[v]
+		dist = math.sqrt(distVect[0]**2 + distVect[1]**2 + distVect[2]**2)
+		if maxDist < dist:
+			maxDist = dist
+	if maxDist < max_movement:
+		stopARAP = True
 
 	# Returns the new target vertices as a list (make sure the indices match)
-	return [(1,1,1), (1,1,1), (1,1,1)]
+	return newTarget
 	
 def DDM_Practical5(context):
 	max_movement = 0.001
@@ -518,14 +549,19 @@ def DDM_Practical5(context):
 	global E_i
 	global edgesGlob
 	global lhs
+	global neighborlist
 
-	# Get the currently active object
+	# Get some basic information
 	obj = context.scene.objects.active
 	vertices = get_vertices(context)
 	faces = get_faces(context)
 	edgesGlob = M.get_edges()
 	M = Mesh(vertices, faces)
 	W = weights(vertices, faces)
+
+	# Setup the list of neighbors
+	for v in range(len(vertices)):
+		neighborlist.append(neighbor_indices(v, vertices, faces))
 
 	# TODO: get handles
 	handles = get_handles(obj)
@@ -545,8 +581,12 @@ def DDM_Practical5(context):
 	lhs = precompute(vertices, faces)
 	
 	# TODO: initial guess
+	tgt = global_step(vertices, initial_guess(vertices))
 	
 	# TODO: ARAP until tolerance
+	for i in range(0, max_iterations):
+		if stopARAP: break
+		tgt = ARAP_iteration(vertices, tgt, max_movement)
 
 	
 #########################################################################
