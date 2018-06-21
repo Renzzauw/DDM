@@ -163,8 +163,8 @@ class Mesh():
 		# Get the edge from the given index
 		edge = self.get_edge(edge_index)
 		# Get the vertex positions
-		v1 = self.get_vertex(edge[0])
-		v2 = self.get_vertex(edge[1])
+		v1 = edge[0]
+		v2 = edge[1]
 		# Calculate the length of the edge with the edge distances
 		xdist = v1[0] - v2[0]
 		ydist = v1[1] - v2[1]
@@ -203,14 +203,17 @@ class Mesh():
 # Create a global mesh object M
 M = Mesh([],[])
 d0 = []
-d0_sparse = ""
+d0_I = ddm.Sparse_Matrix([], 1, 1)
+d0_B = ddm.Sparse_Matrix([], 1, 1)
+neg_d0_I = ddm.Sparse_Matrix([], 1, 1)
 obj = ""
 handles = []
 handleVerts = []
-W = []
+W = ddm.Sparse_Matrix([], 1, 1)
 E_i = []
 rigids = []
 edgesGlob = []
+lhs = ddm.Sparse_Matrix([], 1, 1)
 
 # Return a list of vertices
 def get_vertices(context):
@@ -225,7 +228,8 @@ def get_vertices(context):
 	for p in polygons:
 		polygonVertices = p.vertices
 		for i in range(0, len(polygonVertices)):
-			vertices.append(polygonVertices[i])
+			if obj.data.vertices[polygonVertices[i]].co not in vertices:
+				vertices.append(obj.data.vertices[polygonVertices[i]].co)
 
 	return vertices
 	
@@ -404,8 +408,11 @@ def negTripList(triplets):
 	return copyList
 	
 # Returns the right hand side of least-squares system
-def RHS(vertices, faces):
+def RHS(vertices):
 	global d0
+	global d0_I
+	global d0_B
+	global neg_d0_I
 	global handles
 	global handleVerts
 	global W
@@ -413,40 +420,41 @@ def RHS(vertices, faces):
 	global rigids
 	global edgesGlob
 
-	# Get inner vertices
-	innerVerts = []
-	for v in range(len(vertices)):
-		if v not in handleVerts:
-			innerVerts.append(v)
-
-	# You need to convert the end result to a dense vector
-
-	# Get all necessary splits of d0
-	d0_Ilist, d0_Blist = slice_triplets(d0, innerVerts) 
-	neg_d0_Ilist = negTripList(d0_Ilist)
-	neg_d0_I = ddm.Sparse_Matrix(neg_d0_Ilist, len(E_i), len(innerVerts))
-	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(innerVerts))
-	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(vertices) - len(innerVerts))
-
 	# Compute G
 	g = []
-	for edge in edgesGlob:
-		dinges = (edge[0] - edge[1]) * rigids[vertices.index(edge[0])]
-		g.append(dinges)
-	G = Matrix(g)
-	#manueel sparse
+	countertje = 0
+	for edge in E_i:
+		dinges = (edge[0] - edge[1]) * numpy.divide(numpy.add(rigids[vertices.index(edge[0])], rigids[vertices.index(edge[1])]), 2)
+		g.append( (countertje, 0, dinges[0]) )
+		g.append( (countertje, 1, dinges[1]) )
+		g.append( (countertje, 2, dinges[2]) )
+		countertje = countertje + 1
+	G = ddm.Sparse_Matrix(g, len(E_i), 3)
+
+	# Compute p_appelstroop_B
+	appelstrooplijst = []
+	countertje = 0
+	for hendel in handles:
+		for hendelpunt in hendel[0]:
+			wowgeinig = hendel[1] * hendelpunt
+			appelstrooplijst.append( (countertje, 0, wowgeinig[0]) )
+			appelstrooplijst.append( (countertje, 1, wowgeinig[1]) )
+			appelstrooplijst.append( (countertje, 2, wowgeinig[2]) )
+			countertje = countertje + 1
+	p_appelstroop_B = ddm.Sparse_Matrix(appelstrooplijst, len(handleVerts), 3)
 
 	rhs = neg_d0_I.transposed() * W * d0_B * p_appelstroop_B + d0_I.transposed() * G
 
+	return rhs
 
-	# 100% done w/ dis
-
-	return Vector([1,2,4,5,5,6])
+	# You need to convert the end result to a dense vector
+	# return Vector([1,2,4,5,5,6])
 	
 # Returns a list of vertices coordinates (make sure the indices match)
 def global_step(vertices, rigid_matrices):
 
 	# TODO: Construct RHS
+	rhs = RHS(vertices)
 	
 	# TODO: solve separately by x, y and z (use only a single vector)
 
@@ -455,16 +463,39 @@ def global_step(vertices, rigid_matrices):
 # Returns the left hand side of least-squares system
 def precompute(vertices, faces):
 	global d0
+	global d0_I
+	global d0_B
+	global neg_d0_I
+	global W
+
 	# TODO: construct d_0 and split them into d_0|I and d_0|B
 	d0 = d_0(vertices, faces)
 
-	# TODO: construct LHS with the elements above and Cholesky it
+	# Get inner vertices
+	innerVerts = []
+	for v in range(len(vertices)):
+		if v not in handleVerts:
+			innerVerts.append(v)
 
-	return ddm.Sparse_Matrix([], 1, 1)
+	# Get all necessary splits of d0
+	d0_Ilist, d0_Blist = slice_triplets(d0, innerVerts) 
+	neg_d0_Ilist = negTripList(d0_Ilist)
+	neg_d0_I = ddm.Sparse_Matrix(neg_d0_Ilist, len(E_i), len(innerVerts))
+	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(innerVerts))
+	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(vertices) - len(innerVerts))
+
+	# TODO: construct LHS with the elements above and Cholesky it
+	lhs = d0_I.transposed() * W * d0_I
+	lhs.Cholesky()
+
+	return lhs
 
 # Initial guess, returns a list of identity matrices for each vertex
 def initial_guess(vertices):
-	return [Matrix(), Matrix(), Matrix()]
+	doenouesnormaal = []
+	for v in vertices:
+		doenouesnormaal.append(numpy.identity(3))
+	return doenouesnormaal
 	
 def ARAP_iteration(vertices, faces, max_movement):
 
@@ -479,11 +510,13 @@ def DDM_Practical5(context):
 	max_movement = 0.001
 	max_iterations = 100
 	global M
+	global W
 	global obj
 	global handles
 	global handleVerts
 	global E_i
 	global edgesGlob
+	global lhs
 
 	# Get the currently active object
 	obj = context.scene.objects.active
@@ -491,11 +524,14 @@ def DDM_Practical5(context):
 	faces = get_faces(context)
 	edgesGlob = M.get_edges()
 	M = Mesh(vertices, faces)
+	W = weights(vertices, faces)
 
 	# TODO: get handles
 	handles = get_handles(obj)
 	handleVertsLists = [x for (x, y) in handles]
 	handleVerts = list(set([item for sublist in handleVertsLists for item in sublist]))
+	
+	# TODO: get mesh data
 	edges = M.get_edges()
 	boundEdges = []
 	for i in range(len(edges)):
@@ -504,9 +540,8 @@ def DDM_Practical5(context):
 			boundEdges.append(i)
 	E_i = [edge for edge in edges if edges.index(edge) not in boundEdges]
 	
-	# TODO: get mesh data
-	
 	# TODO: precompute
+	lhs = precompute(vertices, faces)
 	
 	# TODO: initial guess
 	
