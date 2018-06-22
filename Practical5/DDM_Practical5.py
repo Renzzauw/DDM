@@ -260,15 +260,15 @@ def get_faces(context):
 def neighbor_indices(vertex_index, vertices, faces):
 	neighbors = set()
 	for face in faces:
-		if face[0] == vertex_index:
-			neighbors.add(face[1])
-			neighbors.add(face[2])
-		if face[1] == vertex_index:
-			neighbors.add(face[0])
-			neighbors.add(face[2])
-		if face[2] == vertex_index:
-			neighbors.add(face[0])
-			neighbors.add(face[1])
+		if vertices.index(face[0]) == vertex_index:
+			neighbors.add(vertices.index(face[1]))
+			neighbors.add(vertices.index(face[2]))
+		if vertices.index(face[1]) == vertex_index:
+			neighbors.add(vertices.index(face[0]))
+			neighbors.add(vertices.index(face[2]))
+		if vertices.index(face[2]) == vertex_index:
+			neighbors.add(vertices.index(face[0]))
+			neighbors.add(vertices.index(face[1]))
 
 	return list(neighbors)
 	
@@ -285,12 +285,22 @@ def source_matrix(p_index, vertices, neighbor_indices):
 	
 # Calculates the target (non-sparse) matrix Q
 def target_matrix(p_index, vertices, neighbor_indices):
+	V = list(vertices)
+	global handleVerts
+	allVerts = M.get_vertices()
+	for v in handleVerts:
+		V.append(allVerts[v])
 	pDist = []
-	currPoint = vertices[p_index]
+	currPoint = V[p_index]
 	# Subtract each neighbour from the current point
 	for p in neighbor_indices:
-		diff = currPoint - vertices[p]
-		pDist.append(diff)
+		try:
+			diff = currPoint - V[p]
+			pDist.append(diff)
+		except AttributeError:
+			print('vertices doet kut bij:', p)
+			print(V)
+			raise Exception('en stop maar')
 
 	return Matrix(pDist)
 	
@@ -299,7 +309,6 @@ def SVD(P, Q):
 
 	# Calculate S
 	S = P.transpose() * Q
-
 	U, Sigma, V = numpy.linalg.svd(S)
 
 	# Make sure that the result of the singular value decomposition is a triple of numpy.matrix and not some other datastructure.
@@ -308,7 +317,7 @@ def SVD(P, Q):
 # Returns the dense matrix R
 def rigid_transformation_matrix(U, Sigma, V):
 	# U * transpose of V
-	Ri = (U * V.transposed())
+	Ri = U * V.transpose()
 	# Calculate the determinant of Ri
 	det = numpy.linalg.det(Ri)
 	# Check if determinant == -1
@@ -322,7 +331,7 @@ def rigid_transformation_matrix(U, Sigma, V):
 		# Calculate the new Ri
 		newSigma = numpy.identity(Sigma.shape[0])
 		newSigma[smallestIndex][smallestIndex] = -1
-		Ri = U * newSigma * V.transposed()
+		Ri = U * newSigma * V.transpose()
 
 	return Ri
 
@@ -361,13 +370,15 @@ def weights(vertices, faces):
 	
 	global M
 	global W
+	global E_i
+	global edgesGlob
 
 	# Get all edges
-	edges = M.get_edges()
+	edges = edgesGlob
 
 	weights = []
 	for edge in range(0, len(edges)):
-		if M.is_boundary_edge(edge):
+		if edges[edge] not in E_i:
 			# Skip boundary edges
 			continue
 		else:
@@ -422,17 +433,17 @@ def RHS(vertices, rigids):
 	# Compute G
 	g = []
 	countertje = 0
-	print("dittus: ", len(rigids))
 	for edge in E_i:
-		dinges = numpy.multiply((edge[0] - edge[1]), numpy.divide(numpy.add(rigids[vertices.index(edge[0])], rigids[vertices.index(edge[1])]), 2))
-		print(type(dinges))
-		if countertje == 0:
-			print("dinges:", dinges)
+		diff = edge[0] - edge[1]
+		rid1 = rigids[vertices.index(edge[0])]
+		rid2 = rigids[vertices.index(edge[1])]
+		doemaaroptellen = numpy.add(rid1, rid2)
+		doemaardivide = numpy.divide(doemaaroptellen, 2)
+		dinges = numpy.matmul(doemaardivide, diff)
 		g.append( (countertje, 0, dinges[0]) )
 		g.append( (countertje, 1, dinges[1]) )
 		g.append( (countertje, 2, dinges[2]) )
 		countertje = countertje + 1
-	#print(g)
 	G = ddm.Sparse_Matrix(g, len(E_i), 3)
 
 	# Compute p_appelstroop_B
@@ -440,16 +451,21 @@ def RHS(vertices, rigids):
 	countertje = 0
 	for hendel in handles:
 		for hendelpunt in hendel[0]:
-			wowgeinig = hendel[1] * hendelpunt
+			hendelpunt = vertices[hendelpunt]
+			hendelpunt = Vector((hendelpunt[0], hendelpunt[1], hendelpunt[2], 1))
+			wowgeinig = numpy.matmul(hendel[1], hendelpunt)
 			appelstrooplijst.append( (countertje, 0, wowgeinig[0]) )
 			appelstrooplijst.append( (countertje, 1, wowgeinig[1]) )
 			appelstrooplijst.append( (countertje, 2, wowgeinig[2]) )
 			countertje = countertje + 1
 	p_appelstroop_B = ddm.Sparse_Matrix(appelstrooplijst, len(handleVerts), 3)
 
-	rhs = neg_d0_I.transposed() * W * d0_B * p_appelstroop_B + d0_I.transposed() * G
+	linkie = neg_d0_I.transposed() * W * d0_B * p_appelstroop_B
+	rechtie = d0_I.transposed() * G
 
-	return rhs.flatten()
+	rhs = numpy.add(linkie.flatten(), rechtie.flatten())
+
+	return rhs
 
 	# You need to convert the end result to a dense vector
 	# return Vector([1,2,4,5,5,6])
@@ -477,7 +493,10 @@ def global_step(vertices, rigid_matrices):
 	# Convert to coordinates
 	augurk = []
 	for i in range(len(x)):
-		augurk.append( (x[i], y[i], z[i]) )
+		ding = numpy.array([x[i], y[i], z[i]]) #Vector((x[i], y[i], z[i]))
+		print(type(ding))
+		print(ding)
+		augurk.append(ding)
 
 	return augurk
 	
@@ -488,6 +507,7 @@ def precompute(vertices, faces):
 	global d0_B
 	global neg_d0_I
 	global W
+	global E_i
 
 	# TODO: construct d_0 and split them into d_0|I and d_0|B
 	d0 = d_0(vertices, faces)
@@ -518,11 +538,13 @@ def initial_guess(vertices):
 		doenouesnormaal.append(numpy.identity(3))
 	return doenouesnormaal
 	
+# Returns the new target vertices as a list (make sure the indices match)
 def ARAP_iteration(vertices, target_vertEces, max_movement):
 	global stopARAP
+	global neighborlist
 
 	# TODO: local step
-	Ri = local_step(vertices, target_vertEces)
+	Ri = local_step(vertices, target_vertEces, neighborlist)
 	
 	# TODO: global step
 	newTarget = global_step(vertices, Ri)
@@ -537,10 +559,10 @@ def ARAP_iteration(vertices, target_vertEces, max_movement):
 	if maxDist < max_movement:
 		stopARAP = True
 
-	# Returns the new target vertices as a list (make sure the indices match)
 	return newTarget
 	
 def DDM_Practical5(context):
+	print("######################################################################################################")
 	max_movement = 0.001
 	max_iterations = 100
 	global M
@@ -557,9 +579,8 @@ def DDM_Practical5(context):
 	obj = context.scene.objects.active
 	vertices = get_vertices(context)
 	faces = get_faces(context)
-	edgesGlob = M.get_edges()
 	M = Mesh(vertices, faces)
-	W = weights(vertices, faces)
+	edgesGlob = M.get_edges()
 
 	# Setup the list of neighbors
 	for v in range(len(vertices)):
@@ -571,7 +592,7 @@ def DDM_Practical5(context):
 	handleVerts = list(set([item for sublist in handleVertsLists for item in sublist]))
 	
 	# TODO: get mesh data
-	edges = M.get_edges()
+	edges = edgesGlob
 	boundEdges = []
 	for i in range(len(edges)):
 		edge = edges[i]
@@ -579,16 +600,21 @@ def DDM_Practical5(context):
 			boundEdges.append(i)
 	E_i = [edge for edge in edges if edges.index(edge) not in boundEdges]
 	
+	W = weights(vertices, faces)
+	
 	# TODO: precompute
 	lhs = precompute(vertices, faces)
 	
 	# TODO: initial guess
 	tgt = global_step(vertices, initial_guess(vertices))
-	
+
 	# TODO: ARAP until tolerance
+	countor = 1
 	for i in range(0, max_iterations):
 		if stopARAP: break
+		print('RONDE:::::::::::::::::::D', countor)
 		tgt = ARAP_iteration(vertices, tgt, max_movement)
+		countor = countor + 1
 
 	
 #########################################################################
