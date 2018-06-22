@@ -31,7 +31,7 @@ class Mesh():
 		# The uv-coordinates are stored as a list of vectors, with their indices corresponding to the indices of the vertices (there is exactly one uv-coordinate per vertex)
 		self.uv_coordinates = []
 		for vertex in vertices:
-			self.uv_coordinates.append(Vector( (vertex[0], vertex[2]) ))
+			self.uv_coordinates.append( (vertex[0], vertex[2]) )
 	
 		self.build_edge_list()
 	
@@ -286,21 +286,22 @@ def source_matrix(p_index, vertices, neighbor_indices):
 # Calculates the target (non-sparse) matrix Q
 def target_matrix(p_index, vertices, neighbor_indices):
 	V = list(vertices)
-	global handleVerts
+	global handles
 	allVerts = M.get_vertices()
-	for v in handleVerts:
-		V.append(allVerts[v])
+	for handle in handles:
+		for v in handle[0]:
+			v = allVerts[v]
+			v = Vector( (v[0], v[1], v[2], 1) )
+			product = numpy.matmul(handle[1], v)
+			product = (product[0], product[1], product[2])
+			if product not in V:
+				V.append(product)
 	pDist = []
 	currPoint = V[p_index]
 	# Subtract each neighbour from the current point
 	for p in neighbor_indices:
-		try:
-			diff = currPoint - V[p]
-			pDist.append(diff)
-		except AttributeError:
-			print('vertices doet kut bij:', p)
-			print(V)
-			raise Exception('en stop maar')
+		diff = ( (currPoint[0] - V[p][0]), (currPoint[1] - V[p][1]), (currPoint[2] - V[p][2]) )
+		pDist.append(diff)
 
 	return Matrix(pDist)
 	
@@ -437,39 +438,37 @@ def RHS(vertices, rigids):
 		diff = edge[0] - edge[1]
 		rid1 = rigids[vertices.index(edge[0])]
 		rid2 = rigids[vertices.index(edge[1])]
-		doemaaroptellen = numpy.add(rid1, rid2)
-		doemaardivide = numpy.divide(doemaaroptellen, 2)
-		dinges = numpy.matmul(doemaardivide, diff)
+		addition = numpy.add(rid1, rid2)
+		division = numpy.divide(addition, 2)
+		dinges = numpy.matmul(division, diff)
 		g.append( (countertje, 0, dinges[0]) )
 		g.append( (countertje, 1, dinges[1]) )
 		g.append( (countertje, 2, dinges[2]) )
 		countertje = countertje + 1
 	G = ddm.Sparse_Matrix(g, len(E_i), 3)
 
-	# Compute p_appelstroop_B
+	# Compute p_prime_B
 	appelstrooplijst = []
 	countertje = 0
 	for hendel in handles:
 		for hendelpunt in hendel[0]:
 			hendelpunt = vertices[hendelpunt]
-			hendelpunt = Vector((hendelpunt[0], hendelpunt[1], hendelpunt[2], 1))
-			wowgeinig = numpy.matmul(hendel[1], hendelpunt)
-			appelstrooplijst.append( (countertje, 0, wowgeinig[0]) )
-			appelstrooplijst.append( (countertje, 1, wowgeinig[1]) )
-			appelstrooplijst.append( (countertje, 2, wowgeinig[2]) )
+			hendelpunt =(hendelpunt[0], hendelpunt[1], hendelpunt[2], 1)
+			product = numpy.matmul(hendel[1], hendelpunt)
+			appelstrooplijst.append( (countertje, 0, product[0]) )
+			appelstrooplijst.append( (countertje, 1, product[1]) )
+			appelstrooplijst.append( (countertje, 2, product[2]) )
 			countertje = countertje + 1
-	p_appelstroop_B = ddm.Sparse_Matrix(appelstrooplijst, len(handleVerts), 3)
+	p_prime_B = ddm.Sparse_Matrix(appelstrooplijst, len(handleVerts), 3)
 
-	linkie = neg_d0_I.transposed() * W * d0_B * p_appelstroop_B
-	rechtie = d0_I.transposed() * G
+	left = neg_d0_I.transposed() * W * d0_B * p_prime_B
+	right = d0_I.transposed() * G
 
-	rhs = numpy.add(linkie.flatten(), rechtie.flatten())
+	rhs = numpy.add(left.flatten(), right.flatten())
 
 	return rhs
 
 	# You need to convert the end result to a dense vector
-	# return Vector([1,2,4,5,5,6])
-	# lol why
 	
 # Returns a list of vertices coordinates (make sure the indices match)
 def global_step(vertices, rigid_matrices):
@@ -490,15 +489,13 @@ def global_step(vertices, rigid_matrices):
 	y = lhs.solve(righty)
 	z = lhs.solve(rightz)
 
-	# Convert to coordinates
-	augurk = []
-	for i in range(len(x)):
-		ding = numpy.array([x[i], y[i], z[i]]) #Vector((x[i], y[i], z[i]))
-		print(type(ding))
-		print(ding)
-		augurk.append(ding)
+	result = []
 
-	return augurk
+	for i in range(len(x)):
+		item =  (x[i], y[i], z[i]) 
+		result.append(item)
+	
+	return result
 	
 # Returns the left hand side of least-squares system
 def precompute(vertices, faces):
@@ -533,10 +530,10 @@ def precompute(vertices, faces):
 
 # Initial guess, returns a list of identity matrices for each vertex
 def initial_guess(vertices):
-	doenouesnormaal = []
+	result = []
 	for v in vertices:
-		doenouesnormaal.append(numpy.identity(3))
-	return doenouesnormaal
+		result.append(numpy.identity(3))
+	return result
 	
 # Returns the new target vertices as a list (make sure the indices match)
 def ARAP_iteration(vertices, target_vertEces, max_movement):
@@ -548,6 +545,9 @@ def ARAP_iteration(vertices, target_vertEces, max_movement):
 	
 	# TODO: global step
 	newTarget = global_step(vertices, Ri)
+
+	for i in range(len(newTarget)):
+		newTarget[i] = newTarget[i].flatten()
 
 	# Checks if the tolerance has been fucked with
 	maxDist = 0
@@ -609,12 +609,9 @@ def DDM_Practical5(context):
 	tgt = global_step(vertices, initial_guess(vertices))
 
 	# TODO: ARAP until tolerance
-	countor = 1
 	for i in range(0, max_iterations):
 		if stopARAP: break
-		print('RONDE:::::::::::::::::::D', countor)
 		tgt = ARAP_iteration(vertices, tgt, max_movement)
-		countor = countor + 1
 
 	
 #########################################################################
