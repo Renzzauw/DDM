@@ -234,45 +234,6 @@ def DDM_Practical4(context):
 
 	# TODO: show_mesh on a copy of the active mesh with boundary free UV coordinates, call this mesh "LSCM"
 	show_mesh(LSCM(M), "LSCM")
-	
-	###################################################################
-	# EVERYTHING COMMENTED BELOW HAS BEEN IMPLEMENTED ABOVE THIS LINE #
-	###################################################################
-
-	# Example mesh construction
-	
-	# The vertices are stored as a list of vectors (ordered by index)
-	#vertices = [Vector( (0,0,0) ), Vector( (0,1,0) ), Vector( (1,1,0) ), Vector( (1,0,0) )]
-	
-	# The faces are stored as triplets (triangles) of vertex indices, polygons need to be triangulated as in previous practicals. This time edges should also be extracted.
-	#faces = [ (0, 1, 2), (0, 3, 4) ]
-	
-	# Construct a mesh with this data
-	#M = Mesh(vertices, faces)
-	
-	# You can now use the accessors to access the mesh data
-	#print(M.get_edges())
-	
-	# An example of the creation of sparse matrices
-	#A = ddm.Sparse_Matrix([(0, 0, 4), (1, 0, 12), (2, 0, -16), (0, 1, 12), (1, 1, 37), (2, 1, -43), (0, 2, -16), (1, 2, -43), (2, 2, 98)], 3, 3)
-	
-	# Sparse matrices can be multiplied and transposed
-	#B = A.transposed() * A
-	
-	# Cholesky decomposition on a matrix
-	#B.Cholesky()
-	
-	# Solving a system with a certain rhs given as a list
-	#rhs = [2, 2, 2]
-	
-	#x = B.solve(rhs)
-	
-	# A solution should yield the rhs when multiplied with B, ( B * x - v should be zero)
-	#print(Vector( B * x ) - Vector(rhs) )
-	
-	# You can drop the matrix back to a python representation using 'flatten'
-	#print(B.flatten())
-	
 
 # You may place extra functions here
 
@@ -427,16 +388,6 @@ def Convex_Boundary_Method(M, weights, r):
 			if boundEdge[i] not in boundVerts:
 				boundVerts.append(boundEdge[i])
 
-	# Get all inner vertices
-	#innerVerts = []
-	#for inEdge in E_i:
-	#	for i in range(0, 2):
-	#		if inEdge[i] not in boundVerts:
-	#			if inEdge[i] not in innerVerts:
-	#			#if inEdge[i] in innerVerts:
-	#				innerVerts.append(inEdge[i])
-
-
 	# /// 1.1.3 formula (3) (creating d0)
 
 	# Create the tuples of the positions the of 1s and -1s 
@@ -454,12 +405,8 @@ def Convex_Boundary_Method(M, weights, r):
 		weightsList.append((i, i, weights[i]))
 	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
 
-	# Seperate d0 into 2 matrices 
-	#sliced_d0 = slice_triplets(tuplesList, innerVerts)
-	#d0_Ilist, d0_Blist = sliced_d0
 	sliced_d0 = slice_triplets(tuplesList, boundVerts)
 	d0_Blist, d0_Ilist = sliced_d0
-	#print("d0_Ilist", d0_Ilist)
 	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(V) - len(boundVerts))
 	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(boundVerts))
 	
@@ -477,21 +424,14 @@ def Convex_Boundary_Method(M, weights, r):
 	rhs = rhs * d0_B 
 
 	# Left hand sides of formula (5) minus U or V
-	print("d0_Ilist", d0_Ilist)
 	lhs = d0_I.transposed() * W * d0_I
-	#print("lhs dimensions:", lhs.columns(), lhs.rows())
-	print("lhs:", lhs)
 	# Calculate the the inner UVs
-	#help(ddm.Sparse_Matrix.Cholesky)
 	lhs.Cholesky()
 	U_i = lhs.solve(rhs * U_B)
 	V_i = lhs.solve(rhs * V_B)
-	#print("U_i:", U_i)
-	#print("V_i:", V_i)
 	# Create a list of tuples of all the UVs we have
 	UV_i = list(zip(U_i, V_i))
 	UV_b = list(zip(U_B, V_B))
-	#print("UV_i:", UV_i)
 	# Link inner vertices to UV coordinates
 	UV_in = {}
 	uvCount = 0
@@ -505,7 +445,6 @@ def Convex_Boundary_Method(M, weights, r):
 	UV_bound[minIndex] = UV_b[0]
 	uvCount = 1
 	for i in range(1, len(UV_b)):
-		#print("edge ", uvCount, ": ", edges[walkEdge])
 		nextCoord = edges[walkEdge][1]
 		UV_bound[nextCoord] = UV_b[uvCount]
 		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if u == nextCoord][0])
