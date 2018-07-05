@@ -88,7 +88,7 @@ def get_triangles(context):
 			tri.append(obj.data.vertices[verts[0]].co)
 			tri.append(obj.data.vertices[verts[i + 1]].co)
 			tri.append(obj.data.vertices[verts[i + 2]].co)
-			triangles.append(tuple(tri))
+			triangles.append(tri)
 		
 	return triangles
 
