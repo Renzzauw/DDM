@@ -84,12 +84,20 @@ def get_triangles(context):
 		verts = p.vertices
 		# Every convex face consists of [vertices - 2] triangles
 		for i in range(0, len(verts) - 2):
-			tri = []
-			tri.append(obj.data.vertices[verts[0]].co)
-			tri.append(obj.data.vertices[verts[i + 1]].co)
-			tri.append(obj.data.vertices[verts[i + 2]].co)
+			tri = tuple()
+			vert1 = obj.data.vertices[verts[0]].co
+			vert2 = obj.data.vertices[verts[i + 1]].co
+			vert3 = obj.data.vertices[verts[i + 2]].co
+			tri = (Vector([vert1[0],vert1[1],vert1[2]]), Vector([vert2[0],vert2[1],vert2[2]]), Vector([vert3[0],vert3[1],vert3[2]]) )
+			#print(tri)
+
+			#tri.append(Vector(obj.data.vertices[verts[0]].co))
+			#tri.append(Vector(obj.data.vertices[verts[i + 1]].co))
+			#tri.append(Vector(obj.data.vertices[verts[i + 2]].co))
 			triangles.append(tri)
-		
+			#print(tri)
+	#print(type(triangles))	
+	print(triangles)
 	return triangles
 
 # Calculates the Euler characteristic of the given list of triangles
@@ -133,8 +141,8 @@ def sortVectorTuple(tuple):
 	b = tuple[1]
 	end = (a, b)
 	if b.z < a.z: end = (b, a)
-	if end[1].y < end[0].y: end = (end[1], end[0])
-	if end[1].x < end[0].x: end = (end[1], end[0])
+	if end[1][1] < end[0][1]: end = (end[1], end[0])
+	if end[1][0] < end[0][0]: end = (end[1], end[0])
 	return end
 
 # Returns whether the given list of triangles is a closed surface

@@ -254,18 +254,18 @@ def DDM_Practical4(context):
 	#print(M.get_edges())
 	
 	# An example of the creation of sparse matrices
-	A = ddm.Sparse_Matrix([(0, 0, 4), (1, 0, 12), (2, 0, -16), (0, 1, 12), (1, 1, 37), (2, 1, -43), (0, 2, -16), (1, 2, -43), (2, 2, 98)], 3, 3)
+	#A = ddm.Sparse_Matrix([(0, 0, 4), (1, 0, 12), (2, 0, -16), (0, 1, 12), (1, 1, 37), (2, 1, -43), (0, 2, -16), (1, 2, -43), (2, 2, 98)], 3, 3)
 	
 	# Sparse matrices can be multiplied and transposed
-	B = A.transposed() * A
+	#B = A.transposed() * A
 	
 	# Cholesky decomposition on a matrix
-	B.Cholesky()
+	#B.Cholesky()
 	
 	# Solving a system with a certain rhs given as a list
-	rhs = [2, 2, 2]
+	#rhs = [2, 2, 2]
 	
-	x = B.solve(rhs)
+	#x = B.solve(rhs)
 	
 	# A solution should yield the rhs when multiplied with B, ( B * x - v should be zero)
 	#print(Vector( B * x ) - Vector(rhs) )
@@ -390,7 +390,7 @@ def Convex_Boundary_Method(M, weights, r):
 	uvPositions.append((r, 0))
 	for i in range(1, len(sectorAngles)): #+ 1):
 		# TODO: not sure of deze comment wel gucci is 
-		angleSum = angleSum + sectorAngles[i]
+		angleSum = angleSum + sectorAngles[i-1]
 		uv = r * (math.cos(angleSum), math.sin(angleSum))
 		uvPositions.append(uv)
 
@@ -405,10 +405,12 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# Get the boundary edge with the vertex that has the lowest index,
 	# also convert edge indices to tuples of vertex indices
-	minIndex = 99999
-	walkEdge = 99999
+	minIndex = 999999999999999
+	walkEdge = 999999999999999
 	boundEdgeCoords = []
 	for i in boundaryEdges:
+		print("i: ", i)
+		print("edges[i]: ",edges[i])
 		edge = edges[i]
 		boundEdgeCoords.append(edge)
 		if edge[0] < minIndex:
@@ -417,7 +419,7 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# Get all the inner edges (||E_i||)
 	E_i = [x for x in edges if x not in boundEdgeCoords]
-
+	print("length E_I: ", len(E_i))
 	# Get all boundary vertices
 	boundVerts = []
 	for boundEdge in boundEdgeCoords:
@@ -426,21 +428,22 @@ def Convex_Boundary_Method(M, weights, r):
 				boundVerts.append(boundEdge[i])
 
 	# Get all inner vertices
-	innerVerts = []
-	for inEdge in E_i:
-		for i in range(0, 2):
-			if inEdge[i] not in boundVerts:
-				if inEdge[i] not in innerVerts:
-					innerVerts.append(inEdge[i])
+	#innerVerts = []
+	#for inEdge in E_i:
+	#	for i in range(0, 2):
+	#		if inEdge[i] not in boundVerts:
+	#			if inEdge[i] not in innerVerts:
+	#			#if inEdge[i] in innerVerts:
+	#				innerVerts.append(inEdge[i])
 
 
-	# /// 1.1.3 formula (3)
+	# /// 1.1.3 formula (3) (creating d0)
 
 	# Create the tuples of the positions the of 1s and -1s 
 	tuplesList = []
 	for i in range(0, len(E_i)):
-		tuplesList.append((i, M.get_edge(i)[0] , 1))
-		tuplesList.append((i, M.get_edge(i)[1] , -1))
+		tuplesList.append((i, E_i[i][0] , 1))
+		tuplesList.append((i, E_i[i][1] , -1))
 
 	# /// 1.1.3 formula (5)
 
@@ -452,10 +455,13 @@ def Convex_Boundary_Method(M, weights, r):
 	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
 
 	# Seperate d0 into 2 matrices 
-	sliced_d0 = slice_triplets(tuplesList, innerVerts)
-	d0_Ilist, d0_Blist = sliced_d0
-	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(innerVerts))
-	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(V) - len(innerVerts))
+	#sliced_d0 = slice_triplets(tuplesList, innerVerts)
+	#d0_Ilist, d0_Blist = sliced_d0
+	sliced_d0 = slice_triplets(tuplesList, boundVerts)
+	d0_Blist, d0_Ilist = sliced_d0
+	#print("d0_Ilist", d0_Ilist)
+	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(V) - len(boundVerts))
+	d0_B = ddm.Sparse_Matrix(d0_Blist, len(E_i), len(boundVerts))
 	
 	# Get u_B and v_B from the already calculated boundary UVs
 	U_B = [u for (u,v) in uvPositions]
@@ -463,7 +469,7 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# -d0_I
 	copyTuplesList = [(x, y, -z) for (x, y, z) in d0_Ilist]
-	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(innerVerts))
+	negd0_I = ddm.Sparse_Matrix(copyTuplesList, len(E_i), len(V) - len(boundVerts))
 
 	# Right hand sides of formula (5) minus U or V
 	transposenegd0_I = negd0_I.transposed()
@@ -471,17 +477,21 @@ def Convex_Boundary_Method(M, weights, r):
 	rhs = rhs * d0_B 
 
 	# Left hand sides of formula (5) minus U or V
-	lhs = (d0_I.transposed() * W * d0_I)
-
+	print("d0_Ilist", d0_Ilist)
+	lhs = d0_I.transposed() * W * d0_I
+	#print("lhs dimensions:", lhs.columns(), lhs.rows())
+	print("lhs:", lhs)
 	# Calculate the the inner UVs
+	#help(ddm.Sparse_Matrix.Cholesky)
 	lhs.Cholesky()
 	U_i = lhs.solve(rhs * U_B)
 	V_i = lhs.solve(rhs * V_B)
-	
+	#print("U_i:", U_i)
+	#print("V_i:", V_i)
 	# Create a list of tuples of all the UVs we have
 	UV_i = list(zip(U_i, V_i))
 	UV_b = list(zip(U_B, V_B))
-	
+	#print("UV_i:", UV_i)
 	# Link inner vertices to UV coordinates
 	UV_in = {}
 	uvCount = 0
@@ -495,7 +505,7 @@ def Convex_Boundary_Method(M, weights, r):
 	UV_bound[minIndex] = UV_b[0]
 	uvCount = 1
 	for i in range(1, len(UV_b)):
-		print("edge ", uvCount, ": ", edges[walkEdge])
+		#print("edge ", uvCount, ": ", edges[walkEdge])
 		nextCoord = edges[walkEdge][1]
 		UV_bound[nextCoord] = UV_b[uvCount]
 		walkEdge = edges.index([(u, v) for (u, v) in boundEdgeCoords if u == nextCoord][0])
@@ -513,65 +523,9 @@ def Convex_Boundary_Method(M, weights, r):
 def LSCM(M): 
 
 	# TODO: implement yourself
-	#	                                MMMMMM=                                      
-	#                           .MMMMMMMMMMMMMM                                   
-	#                         MMMMMM         MMMM                                 
-	#                      MMMMM              MMMMM.                              
-	#                MMMMMMMM                  ?MMMM.                             
-	#             .MMMMMMMM7MM                  MMMMM                             
-	#             MMMMMMMMM MM                   MMMM                             
-	#             MMMMMMMMM .MM                   MMM                             
-	#            .MMMMMMM.   MM.M.   =MMMMMMMM.   MMM                             
-	#             MMMMMMMM.MMMMMM.  MMMMMMMM MMM  MMM                             
-	#             MMMMMMMMMMMM     MMMMMMMMM  MMM MMM                             
-	#            MMM    MMM:  MM   MMMMMMMMM  MMM MMM                             
-	#           8MM.    MMMMMMMM=  MMMMMMMM.  .M ,MM7                             
-	#          MMMMMMMM..          MMMMM.     M  MMM                              
-	#         .MMMMMMMMMMMMMMM       MMMMMMMMM.  MMM                              
-	#        .MMM        MMMMMMMMMMM.           MMMM                              
-	#        MMM                .~MMMMMMM.      MMM.                              
-	#       MMM.                               MMMM                               
-	#      .MMM                                MMMM                               
-	#      MMM                                DMMM                                
-	#     MMM                                 MMMM                                
-	#     MMM                                .MMM                                 
-	#    MMM                      MM        .MMM                                  
-	#    MMM                     .MM  MM.   MMM~                                  
-	#    MMM                     MMM .MM.   MMM                         MMMMM     
-	#    MMM                     MM. MMM   MMM                        MMM   MMO   
-	#    MMM                     MM  MM   .MMM                      MMMM     MM   
-	#    MM~                    MM. MMM   MMM.                     MMM      IMM   
-	#    MM.                    MM  MM.  .MMM                    .MMM.      MM    
-	#    MM                     M  MMN   .MMM                   MMMM       MM.    
-	#    MM+                   MM MMM    .MM 7MMMMMMMMMMM      MMM.       MM      
-	#    MMM                  .M  MM      MMMMMM. .. MMMMMMM MMM.       MMM.      
-	#    MMM                  +M MMM      MM    .MM     .MMMMMM.      .MMM.       
-	#    ?MM                  M  MM       .      MMM      ~MM.       MMMM         
-	#    .MM                 MM  MM            ,MMMMMMMMMMM         MMMM          
-	#     MMM              MM     MM          MMMMMMMMMMMMMMM     MMMMM           
-	#     MMM            .M     N  MM                  ..MMMMM.     MMMM          
-	#     .MM             MMMM MMMMMM                     .MMMMM        DMM       
-	#      MMM              MMMMM.MM.             ,M,       .MMM.        MM       
-	#       MMM               M.                  MMM         MMM.  .MMMM         
-	#       MMMM                                              MMM.    MM          
-	#        =MMM.                            MM.             MMM      MM         
-	#          MMMM.                          MM              MMM       M         
-	#            MMMM                                         MMMMM,. MMM         
-	# .          MMMMMMM.                     MMM            MMM MMMMMM.          
-	# MMMM      MMN  .MMMMM                               .MMMD                   
-	# MM MMN  .MM    MM MMMMMMMM~ .              M.     .MMMM                     
-	# MM   MM$MM   MMN      MMMMMMMMMM.          M.   .MMMM                       
-	#  M.   MMM   MM              MMMMM  MMMMMMMMM~MMMMMM                         
-	#  MM      .MMN          .. . +MM,  8MM .MMMMMMMM.                            
-	#   M?    NMM           MMMMMMMMM   MM                                        
-	#   .M  .MM7            MMM MMMM   MM                                         
-	#     MMMM              OMM       .MM                                         
-	#      .                 MMM      MM                                          
-	#                        .MMM    MM                                           
-	#                         .MMD  MMM                                           
-	#                           MMMMM?                                            
-	#                            MMM.                                           
 
+
+	
 	return M
 	
 # Builds a Mesh class object from the active object in the scene.
