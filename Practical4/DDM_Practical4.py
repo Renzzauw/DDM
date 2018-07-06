@@ -45,8 +45,6 @@ class Mesh():
 	# All subsequent calls that do something with edges should return their indices. Getting the actual edge can then be done by calling get_edge(index).
 	def build_edge_list(self):
 	
-		# TODO: implement yourself ***DONE***
-
 		# Get the faces
 		faces = self.get_faces()
 
@@ -106,9 +104,7 @@ class Mesh():
 	
 	# Looks up the edges belonging to this face in the edge list and returns their INDICES (not value). Make sure that each edge is unique (recall that (1, 0) == (0, 1)). These should match the order of your weights.
 	def get_face_edges(self, face):
-	
-		# TODO: implement yourself ***DONE***
-		
+			
 		# Get the list of all edges in the Mesh
 		edges = self.get_edges()
 		# Get each edge from the given face (including mirrored identical edges)
@@ -142,9 +138,7 @@ class Mesh():
 	
 	# Returns the flap of the given edge belonging to edge_index, that is faces connected to the edge: 1 for a boundary edge, 2 for internal edges
 	def get_flaps(self, edge_index):
-	
-		# TODO: implement yourself ***DONE***
-	
+		
 		# Watch out: edges might be on the boundary
 
 		# Get all the faces
@@ -170,8 +164,6 @@ class Mesh():
 	# Returns the length of the given edge with edge_index
 	def get_edge_length(self, edge_index):
 		
-		# TODO: implement yourself ***DONE***
-
 		# Get the edge from the given index
 		edge = self.get_edge(edge_index)
 		# Get the vertex positions
@@ -188,9 +180,7 @@ class Mesh():
 		
 	# Returns whether the edge has two adjacent faces
 	def is_boundary_edge(self, edge_index):
-		
-		# TODO: implement yourself ***DONE***
-		
+				
 		# Get the flaps of the edge at the given edge index
 		flaps = self.get_flaps(edge_index)
 		# Check the amount of faces:
@@ -201,8 +191,6 @@ class Mesh():
 	# Returns the boundary of the mesh by returning the indices of the edges (from the internal edge list) that lie around the boundary.
 	def boundary_edges(self):
 		
-		# TODO: implement yourself ***DONE***
-
 		# Get all the edges
 		edges = self.get_edges()
 
@@ -220,16 +208,14 @@ class Mesh():
 	
 # This function is called when the DDM operator is selected in Blender.
 def DDM_Practical4(context):
-	
-	# TODO: remove example code and implement Practical 4 ***Work-In-Progress*
-	
+		
 	# Construct a Mesh class instance from the active object
 	M = get_mesh()
 
-	# TODO: show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
+	# show_mesh on a copy of the active mesh with uniform UV coordinates, call this mesh "Uniform"
 	show_mesh(Convex_Boundary_Method(M, uniform_weights(M), 1), "Uniform")
 	
-	# TODO: show_mesh on a copy of the active mesh with cot UV coordinates, call this mesh "Cot"
+	# show_mesh on a copy of the active mesh with cot UV coordinates, call this mesh "Cot"
 	show_mesh(Convex_Boundary_Method(M, cotan_weights(M), 1), "Cot")
 
 	# TODO: show_mesh on a copy of the active mesh with boundary free UV coordinates, call this mesh "LSCM"
@@ -270,8 +256,6 @@ def slice_triplets(triplets, fixed_colums):
 # Returns the weights for each edge of mesh M, e.g. a list of real numbers such that the index matches the index of the edge list in M.
 def cotan_weights(M):
 	
-	# TODO: implement yourself ***DONE***
-
 	# Get all edges
 	edges = M.get_edges()
 
@@ -308,8 +292,6 @@ def cotan_weights(M):
 # Same as above but for uniform weights
 def uniform_weights(M):
 
-	# TODO: implement yourself ***DONE***
-
 	# Get all edges
 	edges = M.get_edges()
 	boundaryEdges = M.boundary_edges()
@@ -324,8 +306,6 @@ def uniform_weights(M):
 	
 # Given a set of weights, return M with the uv-coordinates set according to the passed weights
 def Convex_Boundary_Method(M, weights, r):
-	
-	# TODO: implement yourself
 
 	# /// 1.1.1 formula (1)
 
@@ -353,57 +333,48 @@ def Convex_Boundary_Method(M, weights, r):
 	# Calculate UV positions on the circle
 	uvPositions = []
 	angleSum = 0
-
-	min_vertex = M.get_edge(boundaryEdges[0])[0]
-	min_vertext_edge_index = 0
-
+	# Get the smallest vertex and the edge it is part of
+	minVert = M.get_edge(boundaryEdges[0])[0]
+	minVertEdge = 0
+	# Add the first UV position on (r,0) on the circle
 	uvPositions.append((r, 0))
 	boundEdgeCoords = []
 	for i in range(1, len(sectorAngles)):
 		angleSum = angleSum + sectorAngles[i-1]
 		uv = r * (math.cos(angleSum), math.sin(angleSum))
 		uvPositions.append(uv)
-		if M.get_edge(boundaryEdges[i])[0] < min_vertex:
-			min_vertex = M.get_edge(boundaryEdges[i])[0]
-			min_vertext_edge_index = i
-
-	edge = M.get_edge(boundaryEdges[min_vertext_edge_index])
-	
-	b_edges = []
+		if M.get_edge(boundaryEdges[i])[0] < minVert:
+			minVert = M.get_edge(boundaryEdges[i])[0]
+			minVertEdge = i
+	# Get the smallest edge from all the edges
+	smallestEdge = M.get_edge(boundaryEdges[minVertEdge])
+	boundEdges = []
 	for i in boundaryEdges:
 		edge0 = M.get_edge(i)
-		edge1 = (edge0[1], edge0[0])
-		b_edges.append(edge0)
-		b_edges.append(edge1)
+		boundEdges.append(edge0)
 	# Remove the smallest edge
-	b_edges.remove(edge)
-	b_edges.remove((edge[1], edge[0]))
-
-	path = [edge]
+	boundEdges.remove(smallestEdge)	
+	walkPath = [smallestEdge]
 	
-	while edge[1] != min_vertex:
-		for i in b_edges:
-			if i[0] == edge[1]:
-				edge = i
-				path.append(edge)
-				b_edges.remove(i)
-				b_edges.remove((i[1], i[0]))
+	while minVert != smallestEdge[1]:
+		for edge in boundEdges:
+			if edge[0] == smallestEdge[1]:
+				smallestEdge = edge
+				walkPath.append(smallestEdge)
+				boundEdges.remove(edge)
 				break
-	print("path", path)
-	vert_order = []
-	for p in path:
-		vert_order.append(p[0])
-	nr_outer_vertices = len(vert_order)
+	boundVerts = []
+	for p in walkPath:
+		boundVerts.append(p[0])
+	nr_outer_vertices = len(boundVerts)
 
 	for i in range(0, nr_outer_vertices):
-		vertex = vert_order[i]
+		vertex = boundVerts[i]
 		M.uv_coordinates[vertex] = uvPositions[i]		
 
 	# /// 1.1.2 [weights calculated in formulas above]
 
 	# /// 1.1.3 Laplacian System
-
-	
 
 	# Get the boundary edge with the vertex that has the lowest index,
 	# also convert edge indices to tuples of vertex indices
@@ -411,25 +382,15 @@ def Convex_Boundary_Method(M, weights, r):
 	walkEdge = 999999999999999
 	boundEdgeCoords = []
 	for i in boundaryEdges:
-		#print("i: ", i)
-		#print("edges[i]: ",edges[i])
-		edge = edges[i]
-		boundEdgeCoords.append(edge)
-		if edge[0] < minIndex:
-			minIndex = edge[0]
+		smallestEdge = edges[i]
+		boundEdgeCoords.append(smallestEdge)
+		if smallestEdge[0] < minIndex:
+			minIndex = smallestEdge[0]
 			walkEdge = i
 
 	# Get all the inner edges (||E_i||)
 	E_i = [x for x in edges if x not in boundEdgeCoords]
-	# Get all boundary vertices
-	boundVerts = []
-	for boundEdge in boundEdgeCoords:
-		for i in range(0, 2):
-			if boundEdge[i] not in boundVerts:
-				boundVerts.append(boundEdge[i])
-	boundVerts = vert_order
-	#print(boundVerts == [8, 9, 256, 254, 265, 262, 263, 269, 259, 260, 191, 190, 193, 258, 257, 253, 236, 119, 128, 130, 134, 137, 143, 145, 146, 65, 64, 56, 267, 136, 58, 72, 60, 61, 123, 124, 171, 185, 184])
-	#boundVerts = [8, 9, 256, 254, 265, 262, 263, 269, 259, 260, 191, 190, 193, 258, 257, 253, 236, 119, 128, 130, 134, 137, 143, 145, 146, 65, 64, 56, 267, 136, 58, 72, 60, 61, 123, 124, 171, 185, 184]
+	
 	# /// 1.1.3 formula (3) (creating d0)
 
 	# Create the tuples of the positions the of 1s and -1s 
@@ -446,7 +407,8 @@ def Convex_Boundary_Method(M, weights, r):
 	for i in range(0, weightsCount):
 		weightsList.append((i, i, weights[i]))
 	W = ddm.Sparse_Matrix(weightsList, weightsCount, weightsCount)
-
+	
+	# Slice d0
 	sliced_d0 = slice_triplets(tuplesList, boundVerts)
 	d0_Blist, d0_Ilist = sliced_d0
 	d0_I = ddm.Sparse_Matrix(d0_Ilist, len(E_i), len(V) - len(boundVerts))
@@ -504,8 +466,6 @@ def Convex_Boundary_Method(M, weights, r):
 def LSCM(M): 
 
 	# TODO: implement yourself
-
-
 	
 	return M
 	
@@ -513,8 +473,6 @@ def LSCM(M):
 # in essence this function extracts data from the scene and returns it as a (simpler) Mesh class, triangulated where nessecary.
 # This function is very similar to the get_vertices function but instead of triangle lists you should build a Mesh class instead.
 def get_mesh():
-
-	# TODO: implement yourself ***DONE***
 	
 	# Get the active object from the scene
 	active_obj = bpy.context.active_object
@@ -532,9 +490,7 @@ def get_mesh():
 	
 # Given a Mesh class M, create a new object with name in the scene with the data from M
 def show_mesh(M, name):
-	
-	# TODO: implement yourself ***DONE***
-	
+		
 	# Note that in order to apply UV-coordinates to a mesh, the mesh needs to have at least 1 UV-layer (denoted as UV-map in the Blender interface under "data") with data.
 	# You can then set the UV-coordinates of each loop (not vertex as in your own implemented Mesh class). The term "loop" is quite a misnomer in the Blender interface and 
 	# differs from the use in the assignment itself as it simply means "some polyon in the mesh".
