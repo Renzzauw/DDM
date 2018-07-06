@@ -329,6 +329,10 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# /// 1.1.1 formula (1)
 
+	# Get all the vertices (||V||)
+	V = M.get_vertices()
+	# Get all the edges
+	edges = M.get_edges()
 	# Get the boundary edges
 	boundaryEdges = M.boundary_edges()
 	# Get boundary lengths
@@ -337,6 +341,7 @@ def Convex_Boundary_Method(M, weights, r):
 		boundaryLengths.append(M.get_edge_length(b))
 	# Get total length of the boundary
 	totalBoundaryLength = sum(boundaryLengths)
+	
 	# Calculate sector angles
 	sectorAngles = []
 	for i in range(0, len(boundaryLengths)):
@@ -348,21 +353,57 @@ def Convex_Boundary_Method(M, weights, r):
 	# Calculate UV positions on the circle
 	uvPositions = []
 	angleSum = 0
+
+	min_vertex = M.get_edge(boundaryEdges[0])[0]
+	min_vertext_edge_index = 0
+
 	uvPositions.append((r, 0))
-	for i in range(1, len(sectorAngles)): #+ 1):
-		# TODO: not sure of deze comment wel gucci is 
+	boundEdgeCoords = []
+	for i in range(1, len(sectorAngles)):
 		angleSum = angleSum + sectorAngles[i-1]
 		uv = r * (math.cos(angleSum), math.sin(angleSum))
 		uvPositions.append(uv)
+		if M.get_edge(boundaryEdges[i])[0] < min_vertex:
+			min_vertex = M.get_edge(boundaryEdges[i])[0]
+			min_vertext_edge_index = i
+
+	edge = M.get_edge(boundaryEdges[min_vertext_edge_index])
+	
+	b_edges = []
+	for i in boundaryEdges:
+		edge0 = M.get_edge(i)
+		edge1 = (edge0[1], edge0[0])
+		b_edges.append(edge0)
+		b_edges.append(edge1)
+	# Remove the smallest edge
+	b_edges.remove(edge)
+	b_edges.remove((edge[1], edge[0]))
+
+	path = [edge]
+	
+	while edge[1] != min_vertex:
+		for i in b_edges:
+			if i[0] == edge[1]:
+				edge = i
+				path.append(edge)
+				b_edges.remove(i)
+				b_edges.remove((i[1], i[0]))
+				break
+	print("path", path)
+	vert_order = []
+	for p in path:
+		vert_order.append(p[0])
+	nr_outer_vertices = len(vert_order)
+
+	for i in range(0, nr_outer_vertices):
+		vertex = vert_order[i]
+		M.uv_coordinates[vertex] = uvPositions[i]		
 
 	# /// 1.1.2 [weights calculated in formulas above]
 
 	# /// 1.1.3 Laplacian System
 
-	# Get all the vertices (||V||)
-	V = M.get_vertices()
-	# Get all the edges
-	edges = M.get_edges()
+	
 
 	# Get the boundary edge with the vertex that has the lowest index,
 	# also convert edge indices to tuples of vertex indices
@@ -370,8 +411,8 @@ def Convex_Boundary_Method(M, weights, r):
 	walkEdge = 999999999999999
 	boundEdgeCoords = []
 	for i in boundaryEdges:
-		print("i: ", i)
-		print("edges[i]: ",edges[i])
+		#print("i: ", i)
+		#print("edges[i]: ",edges[i])
 		edge = edges[i]
 		boundEdgeCoords.append(edge)
 		if edge[0] < minIndex:
@@ -380,14 +421,15 @@ def Convex_Boundary_Method(M, weights, r):
 
 	# Get all the inner edges (||E_i||)
 	E_i = [x for x in edges if x not in boundEdgeCoords]
-	print("length E_I: ", len(E_i))
 	# Get all boundary vertices
 	boundVerts = []
 	for boundEdge in boundEdgeCoords:
 		for i in range(0, 2):
 			if boundEdge[i] not in boundVerts:
 				boundVerts.append(boundEdge[i])
-
+	boundVerts = vert_order
+	#print(boundVerts == [8, 9, 256, 254, 265, 262, 263, 269, 259, 260, 191, 190, 193, 258, 257, 253, 236, 119, 128, 130, 134, 137, 143, 145, 146, 65, 64, 56, 267, 136, 58, 72, 60, 61, 123, 124, 171, 185, 184])
+	#boundVerts = [8, 9, 256, 254, 265, 262, 263, 269, 259, 260, 191, 190, 193, 258, 257, 253, 236, 119, 128, 130, 134, 137, 143, 145, 146, 65, 64, 56, 267, 136, 58, 72, 60, 61, 123, 124, 171, 185, 184]
 	# /// 1.1.3 formula (3) (creating d0)
 
 	# Create the tuples of the positions the of 1s and -1s 
